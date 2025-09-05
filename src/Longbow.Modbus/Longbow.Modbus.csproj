@@ -5,9 +5,21 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <IsPackable>true</IsPackable>
+    <RepositoryUrl>https://github.com/LongbowEnterprise/Longbow.Modbus?wt.mc_id=DT-MVP-5004174</RepositoryUrl>
+    <PackageProjectUrl></PackageProjectUrl>
+    <RepositoryType>github</RepositoryType>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <DocumentationFile>$(MSBuildProjectName).xml</DocumentationFile>
+    <!--<PackageReadmeFile>readme.md</PackageReadmeFile>-->
+    <PackageReleaseNotes></PackageReleaseNotes>
     <PackageTags>Longbow Modbus</PackageTags>
     <Description>Longbow extensions of Modbus</Description>
   </PropertyGroup>
+
+  <ItemGroup>
+    <!--<None Include="readme.md" Pack="true" PackagePath="" />-->
+  </ItemGroup>
 
   <PropertyGroup>
     <NET8Version>8.0.*</NET8Version>
