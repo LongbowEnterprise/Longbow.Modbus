@@ -1,5 +1,9 @@
 <Project>
 
+  <Import Project=".\Frameworks.props" />
+  <!--<Import Project=".\Logo.props" />-->
+  <Import Project=".\SourceLink.targets" />
+
   <PropertyGroup>
     <Copyright>Longbow</Copyright>
     <Authors>Argo(argo@live.ca)</Authors>

@@ -1,9 +1,6 @@
 <Project>
 
   <Import Project="..\..\Directory.Build.props" />
-  <Import Project=".\Frameworks.props" />
-  <!--<Import Project=".\Logo.props" />-->
-  <Import Project=".\SourceLink.targets" />
 
   <PropertyGroup>
     <Version>9.0.0</Version>
