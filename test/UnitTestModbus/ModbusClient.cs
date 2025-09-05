@@ -6,7 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace UnitTestModbus;
 
-public class TcpClientTest
+public class ModbusClient
 {
     [Fact]
     public async Task ReadCoilsAsync_Ok()
