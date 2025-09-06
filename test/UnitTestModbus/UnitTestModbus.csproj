@@ -29,8 +29,8 @@
     <Using Include="Longbow.Socket.DataHandlers" />
     <Using Include="Longbow.Socket.DataConverters" />
     <Using Include="Longbow.TcpSocket" />
-    <Using Include="Xunit"/>
-    <Using Include="Xunit.Abstractions"/>
+    <Using Include="Xunit" />
+    <Using Include="Xunit.Abstractions" />
   </ItemGroup>
 
 </Project>

@@ -1,6 +1,5 @@
 <Project>
 
-  <Import Project=".\Frameworks.props" />
   <!--<Import Project=".\Logo.props" />-->
   <Import Project=".\SourceLink.targets" />
 

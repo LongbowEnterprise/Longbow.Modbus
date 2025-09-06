@@ -22,6 +22,7 @@
   </ItemGroup>
 
   <PropertyGroup>
+    <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
     <NET8Version>8.0.*</NET8Version>
     <NET9Version>9.0.*</NET9Version>
   </PropertyGroup>
