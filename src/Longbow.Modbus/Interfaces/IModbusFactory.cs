@@ -15,7 +15,7 @@ public interface IModbusFactory
     /// <param name="name"></param>
     /// <param name="valueFactory"></param>
     /// <returns></returns>
-    IModbusTcpClient GetOrCreateTcpMaster(string name, Action<ModbusTcpClientOptions>? valueFactory = null);
+    IModbusTcpClient GetOrCreateTcpMaster(string? name = null, Action<ModbusTcpClientOptions>? valueFactory = null);
 
     /// <summary>
     /// 移除指定名称的 <see cref="IModbusTcpClient"/> 客户端实例

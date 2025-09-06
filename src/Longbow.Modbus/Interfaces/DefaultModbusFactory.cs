@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
-using Longbow.TcpSocket;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Runtime.Versioning;
 
@@ -13,29 +11,29 @@ namespace Longbow.Modbus;
 /// Represents a TCP socket for network communication.
 /// </summary>
 [UnsupportedOSPlatform("browser")]
-class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
+class DefaultModbusFactory(ITcpSocketFactory factory) : IModbusFactory
 {
     private readonly ConcurrentDictionary<string, IModbusTcpClient> _pool = new();
 
-    public IModbusTcpClient GetOrCreateTcpMaster(string name, Action<ModbusTcpClientOptions>? valueFactory = null)
-    {
-        return _pool.GetOrAdd(name, key =>
-        {
-            var options = new ModbusTcpClientOptions();
-            valueFactory?.Invoke(options);
+    public IModbusTcpClient GetOrCreateTcpMaster(string? name, Action<ModbusTcpClientOptions>? valueFactory = null) => string.IsNullOrEmpty(name)
+        ? CreateTcpClient(valueFactory)
+        : _pool.GetOrAdd(name, key => CreateTcpClient(valueFactory));
 
-            var factory = provider.GetRequiredService<ITcpSocketFactory>();
-            var client = factory.GetOrCreate(name, op =>
-            {
-                op.ConnectTimeout = options.ConnectTimeout;
-                op.SendTimeout = options.WriteTimeout;
-                op.ReceiveTimeout = options.ReadTimeout;
-                op.IsAutoReceive = false;
-                op.IsAutoReconnect = false;
-                op.LocalEndPoint = options.LocalEndPoint;
-            });
-            return new DefaultModbusTcpClient(client);
+    private DefaultModbusTcpClient CreateTcpClient(Action<ModbusTcpClientOptions>? valueFactory = null)
+    {
+        var options = new ModbusTcpClientOptions();
+        valueFactory?.Invoke(options);
+
+        var client = factory.GetOrCreate(valueFactory: op =>
+        {
+            op.ConnectTimeout = options.ConnectTimeout;
+            op.SendTimeout = options.WriteTimeout;
+            op.ReceiveTimeout = options.ReadTimeout;
+            op.IsAutoReceive = false;
+            op.IsAutoReconnect = false;
+            op.LocalEndPoint = options.LocalEndPoint;
         });
+        return new DefaultModbusTcpClient(client);
     }
 
     public IModbusTcpClient? RemoveTcpMaster(string name)
