@@ -20,6 +20,20 @@ public class RtuClientTest
         await using var client = factory.GetOrCreateRtuMaster("test", op =>
         {
             op.PortName = "COM1";
+            op.DiscardNull = false;
+            op.BaudRate = 9600;
+            op.DataBits = 8;
+            op.Parity = System.IO.Ports.Parity.None;
+            op.StopBits = System.IO.Ports.StopBits.One;
+            op.ReadTimeout = 3000;
+            op.WriteTimeout = 3000;
+            op.RtsEnable = false;
+            op.DtrEnable = false;
+            op.Handshake = System.IO.Ports.Handshake.None;
+            op.ReadBufferSize = 4096;
+            op.WriteBufferSize = 2048;
+            op.RtsEnable = false;
+            op.DtrEnable = false;
         });
 
         // 连接 Master
