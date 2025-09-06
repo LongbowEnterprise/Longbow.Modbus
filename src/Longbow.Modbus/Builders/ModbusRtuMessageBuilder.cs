@@ -43,22 +43,15 @@ public class ModbusRtuMessageBuilder
     /// <returns></returns>
     public static ReadOnlyMemory<byte> BuildWriteRequest(byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
     {
-        var request = new byte[8 + data.Length];
+        var request = new byte[2 + data.Length];
 
-        // MBAP头（7字节）
-        request[2] = 0x00;                          // 02 协议标识符高字节（Modbus固定0）
-        request[3] = 0x00;                          // 03 协议标识符低字节
-        request[4] = 0x00;                          // 04 长度高字节（后续字节数）
-        request[5] = (byte)(2 + data.Length);       // 05 长度低字节（PDU数据）
-
-        // PDU部分
-        request[6] = slaveAddress;                  // 06 从站地址
-        request[7] = functionCode;                  // 07 功能码
+        request[0] = slaveAddress;                  // 00 从站地址
+        request[1] = functionCode;                  // 01 功能码
 
         // 写入数据部分
-        data.CopyTo(request.AsMemory(8));
+        data.CopyTo(request.AsMemory(2));
 
-        return request;
+        return ModbusCrc16.Append(request).ToArray();
     }
 
     /// <summary>
@@ -99,32 +92,34 @@ public class ModbusRtuMessageBuilder
     /// 验证 Modbus RTU 写入响应消息方法
     /// </summary>
     /// <param name="response"></param>
-    /// <param name="slaveAddress"></param>
     /// <param name="functionCode"></param>
     /// <param name="data"></param>
     /// <param name="exception"></param>
     /// <returns></returns>
-    public static bool TryValidateWriteResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data, [NotNullWhen(false)] out Exception? exception)
+    public static bool TryValidateWriteResponse(ReadOnlyMemory<byte> response, byte functionCode, ReadOnlyMemory<byte> data, [NotNullWhen(false)] out Exception? exception)
     {
-        if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
+        if (!TryValidateHeader(response, data.Span[0], functionCode, out exception))
         {
             return false;
         }
 
-        if (response.Length == 12 && response.Span[7] == functionCode)
+        if (response.Length == 8 && response.Span[1] == functionCode)
         {
-            var expected = data.Length == 4
-                ? data
-                : data[0..4];
-            var actual = data.Length == 4
-                ? response[8..]
-                : response[8..12];
+            var expected = data[2..6];
+            var actual = response[2..6];
 
             if (!expected.Span.SequenceEqual(actual.Span))
             {
                 exception = new Exception($"return data does not match 返回值不匹配预期值 期望值: {BitConverter.ToString(expected.ToArray())} 实际值: {BitConverter.ToString(actual.ToArray())}");
                 return false;
             }
+        }
+
+        // 验证 CRC 校验码
+        if (!ModbusCrc16.Validate(response.Span))
+        {
+            exception = new Exception("CRC check failed CRC 校验失败");
+            return false;
         }
 
         exception = null;
