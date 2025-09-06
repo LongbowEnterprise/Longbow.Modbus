@@ -2,12 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
-using Longbow.Socket.Algorithm;
 using System.IO.Ports;
 
 namespace Longbow.Modbus;
 
-class DefaultModbusRtuClient(ModbusRtuClientOptions options) : DefaultModbusClientBase, IModbusRtuClient
+class DefaultModbusRtuClient(ModbusRtuClientOptions options) : ModbusClientBase, IModbusRtuClient
 {
     private TaskCompletionSource? _readTaskCompletionSource;
     private CancellationTokenSource? _receiveCancellationTokenSource;

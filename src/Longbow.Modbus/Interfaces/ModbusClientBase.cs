@@ -4,7 +4,7 @@
 
 namespace Longbow.Modbus;
 
-abstract class DefaultModbusClientBase : IModbusClient
+abstract class ModbusClientBase : IModbusClient
 {
     public Exception? Exception { get; protected set; }
 
