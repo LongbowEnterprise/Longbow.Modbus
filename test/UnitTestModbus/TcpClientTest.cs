@@ -17,7 +17,10 @@ public class TcpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test", op =>
+        {
+            op.ReadTimeout = 1000;
+        });
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 502);
@@ -31,6 +34,8 @@ public class TcpClientTest
 
         await using var client2 = factory.GetOrCreateTcpMaster();
         Assert.NotEqual(client, client2);
+
+        factory.RemoveTcpMaster("test");
     }
 
     [Fact]
