@@ -28,6 +28,9 @@ public class ModbusClient
         response = await client.ReadCoilsAsync(0x01, 0, 5);
         Assert.NotNull(response);
         Assert.Equal(5, response.Length);
+
+        await using var client2 = factory.GetOrCreateTcpMaster();
+        Assert.NotEqual(client, client2);
     }
 
     [Fact]
