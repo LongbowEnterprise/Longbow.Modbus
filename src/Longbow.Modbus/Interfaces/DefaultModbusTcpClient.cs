@@ -109,7 +109,7 @@ class DefaultModbusTcpClient(ITcpSocketClient client) : DefaultModbusClientBase,
         return result;
     }
 
-    protected static ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
+    private static ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
     {
         int byteCount = (values.Length + 7) / 8;
         var data = new byte[values.Length > 1 ? 5 + byteCount : 4];
@@ -144,7 +144,7 @@ class DefaultModbusTcpClient(ITcpSocketClient client) : DefaultModbusClientBase,
         return data;
     }
 
-    protected static ReadOnlyMemory<byte> WriteUShortValues(ushort address, ushort[] values)
+    private static ReadOnlyMemory<byte> WriteUShortValues(ushort address, ushort[] values)
     {
         int byteCount = values.Length * 2;
         var data = new byte[values.Length > 1 ? 5 + byteCount : 4];
