@@ -9,7 +9,7 @@ namespace Longbow.Modbus;
 /// <summary>
 /// Modbus RTU 消息构建器
 /// </summary>
-public class ModbusRtuMessageBuilder
+sealed class ModbusRtuMessageBuilder
 {
     /// <summary>
     /// 构建 Modbus RTU 读取消息方法
