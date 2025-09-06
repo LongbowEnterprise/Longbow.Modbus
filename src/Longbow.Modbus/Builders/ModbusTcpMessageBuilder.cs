@@ -75,9 +75,16 @@ sealed class ModbusTcpMessageBuilder
         return request;
     }
 
-    private uint GetTransactionId() => _transactionId >= ushort.MaxValue
-        ? Interlocked.Exchange(ref _transactionId, 0)
-        : Interlocked.Increment(ref _transactionId);
+    private uint GetTransactionId()
+    {
+        if (_transactionId >= 0xFFFF)
+        {
+            Interlocked.Exchange(ref _transactionId, 0);
+            return 0;
+        }
+
+        return Interlocked.Increment(ref _transactionId);
+    }
 
     /// <summary>
     /// 验证 Modbus TCP 读取响应消息方法
@@ -122,7 +129,7 @@ sealed class ModbusTcpMessageBuilder
             return false;
         }
 
-        if (response.Length == 12 && response.Span[7] == functionCode)
+        if (response.Length == 12)
         {
             var expected = data.Length == 4
                 ? data
@@ -159,7 +166,7 @@ sealed class ModbusTcpMessageBuilder
         }
 
         // 检查从站地址
-        if (response.Span[0] != slaveAddress)
+        if (response.Span[6] != slaveAddress)
         {
             exception = new Exception($"Slave address is insufficient 从站地址不匹配 期望值 0x{slaveAddress:X2} 实际值 0x{response.Span[0]:X2}");
             return false;
