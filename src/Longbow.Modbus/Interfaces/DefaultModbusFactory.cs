@@ -13,11 +13,12 @@ namespace Longbow.Modbus;
 [UnsupportedOSPlatform("browser")]
 class DefaultModbusFactory(ITcpSocketFactory factory) : IModbusFactory
 {
-    private readonly ConcurrentDictionary<string, IModbusTcpClient> _pool = new();
+    private readonly ConcurrentDictionary<string, IModbusTcpClient> _tcpPool = new();
+    private readonly ConcurrentDictionary<string, IModbusRtuClient> _rtuPool = new();
 
     public IModbusTcpClient GetOrCreateTcpMaster(string? name, Action<ModbusTcpClientOptions>? valueFactory = null) => string.IsNullOrEmpty(name)
         ? CreateTcpClient(valueFactory)
-        : _pool.GetOrAdd(name, key => CreateTcpClient(valueFactory));
+        : _tcpPool.GetOrAdd(name, key => CreateTcpClient(valueFactory));
 
     private DefaultModbusTcpClient CreateTcpClient(Action<ModbusTcpClientOptions>? valueFactory = null)
     {
@@ -39,7 +40,25 @@ class DefaultModbusFactory(ITcpSocketFactory factory) : IModbusFactory
     public IModbusTcpClient? RemoveTcpMaster(string name)
     {
         IModbusTcpClient? client = null;
-        if (_pool.TryRemove(name, out var c))
+        if (_tcpPool.TryRemove(name, out var c))
+        {
+            client = c;
+        }
+        return client;
+    }
+
+    public IModbusRtuClient GetOrCreateRtuMaster(string? name = null, Action<ModbusRtuClientOptions>? valueFactory = null)
+    {
+        var options = new ModbusRtuClientOptions();
+        valueFactory?.Invoke(options);
+
+        return new DefaultModbusRtuClient(options);
+    }
+
+    public IModbusRtuClient? RemoveRtuMaster(string name)
+    {
+        IModbusRtuClient? client = null;
+        if (_rtuPool.TryRemove(name, out var c))
         {
             client = c;
         }
