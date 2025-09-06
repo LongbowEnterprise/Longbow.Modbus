@@ -1,24 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Version>9.0.0-beta01</Version>
+    <Version>9.0.0</Version>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageTags>Longbow Modbus</PackageTags>
+    <Description>Longbow extensions of Modbus</Description>
   </PropertyGroup>
 
   <PropertyGroup>
     <IsPackable>true</IsPackable>
     <RepositoryUrl>https://github.com/LongbowEnterprise/Longbow.Modbus?wt.mc_id=DT-MVP-5004174</RepositoryUrl>
-    <PackageProjectUrl></PackageProjectUrl>
-    <RepositoryType>github</RepositoryType>
-    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/LongbowEnterprise/Longbow.Modbus?wt.mc_id=DT-MVP-5004174</PackageProjectUrl>
     <DocumentationFile>$(MSBuildProjectName).xml</DocumentationFile>
-    <!--<PackageReadmeFile>readme.md</PackageReadmeFile>-->
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
     <PackageReleaseNotes></PackageReleaseNotes>
-    <PackageTags>Longbow Modbus</PackageTags>
-    <Description>Longbow extensions of Modbus</Description>
   </PropertyGroup>
 
   <ItemGroup>
-    <!--<None Include="readme.md" Pack="true" PackagePath="" />-->
+    <None Include="readme.md" Pack="true" PackagePath="" />
   </ItemGroup>
 
   <PropertyGroup>
