@@ -2,7 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Runtime.Versioning;
 
@@ -12,7 +11,7 @@ namespace Longbow.Modbus;
 /// Represents a TCP socket for network communication.
 /// </summary>
 [UnsupportedOSPlatform("browser")]
-class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
+class DefaultModbusFactory(ITcpSocketFactory factory) : IModbusFactory
 {
     private readonly ConcurrentDictionary<string, IModbusTcpClient> _pool = new();
 
@@ -25,7 +24,6 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         var options = new ModbusTcpClientOptions();
         valueFactory?.Invoke(options);
 
-        var factory = provider.GetRequiredService<ITcpSocketFactory>();
         var client = factory.GetOrCreate(valueFactory: op =>
         {
             op.ConnectTimeout = options.ConnectTimeout;
