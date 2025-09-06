@@ -79,12 +79,12 @@ public class ModbusRtuClientOptions : ModbusClientOptions
     public bool DiscardNull { get; set; }
 
     /// <summary>
-    /// Gets the size, in bytes, of the buffer used for reading data from the underlying stream.
+    /// Gets the size, in bytes, of the buffer used for reading data from the underlying stream. Default value is 4096
     /// </summary>
-    public int ReadBufferSize { get; set; }
+    public int ReadBufferSize { get; set; } = 4096;
 
     /// <summary>
-    /// Gets the size, in bytes, of the buffer used for write operations.
+    /// Gets the size, in bytes, of the buffer used for write operations. Default value is 2048
     /// </summary>
-    public int WriteBufferSize { get; internal set; }
+    public int WriteBufferSize { get; set; } = 2048;
 }

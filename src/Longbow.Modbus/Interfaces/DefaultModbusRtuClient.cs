@@ -10,7 +10,6 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : DefaultModbusClie
 {
     private TaskCompletionSource? _readTaskCompletionSource;
     private CancellationTokenSource? _receiveCancellationTokenSource;
-    private readonly ModbusTcpMessageBuilder _builder = new();
     private SerialPort? _serialPort;
     private ReadOnlyMemory<byte> _buffer = ReadOnlyMemory<byte>.Empty;
 
@@ -19,6 +18,7 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : DefaultModbusClie
         _serialPort ??= new(options.PortName, options.BaudRate, options.Parity, options.DataBits, options.StopBits);
         _serialPort.RtsEnable = options.RtsEnable;
         _serialPort.DtrEnable = options.DtrEnable;
+
         _serialPort.Handshake = options.Handshake;
         _serialPort.DiscardNull = options.DiscardNull;
         _serialPort.ReadBufferSize = options.ReadBufferSize;
@@ -51,9 +51,14 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : DefaultModbusClie
             if (bytesToRead > 0)
             {
                 var buffer = new byte[bytesToRead];
-                _serialPort.Read(buffer, 0, bytesToRead);
+                if (_serialPort.Read(buffer, 0, bytesToRead) == buffer.Length)
+                {
+                    _buffer = buffer;
+                }
             }
         }
+
+        _readTaskCompletionSource?.TrySetResult();
     }
 
     private void ErrorReceived(object? sender, SerialErrorReceivedEventArgs e)
@@ -71,21 +76,50 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : DefaultModbusClie
         }
 
         // 发送数据
-        var request = _builder.BuildReadRequest(slaveAddress, functionCode, startAddress, numberOfPoints);
-        _serialPort.Write(request.ToArray(), 0, request.Length);
-
         _readTaskCompletionSource = new TaskCompletionSource();
         _receiveCancellationTokenSource ??= new();
+        _buffer = ReadOnlyMemory<byte>.Empty;
+
+        var request = ModbusRtuMessageBuilder.BuildReadRequest(slaveAddress, functionCode, startAddress, numberOfPoints);
+        _serialPort.DiscardInBuffer();
+        _serialPort.DiscardOutBuffer();
+        _serialPort.Write(request.ToArray(), 0, request.Length);
+
         await _readTaskCompletionSource.Task.WaitAsync(_receiveCancellationTokenSource.Token);
 
-        var received = ReadOnlyMemory<byte>.Empty;
-        if (!_builder.TryValidateReadResponse(received, functionCode, out var exception))
+        var received = _buffer.ToArray();
+        if (!ModbusRtuMessageBuilder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception))
         {
             Exception = exception;
             return default;
         }
 
         return received;
+    }
+
+    protected override bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
+    {
+        var values = new bool[numberOfPoints];
+        for (var i = 0; i < numberOfPoints; i++)
+        {
+            var byteIndex = 3 + i / 8;
+            var bitIndex = i % 8;
+            values[i] = (response.Span[byteIndex] & (1 << bitIndex)) != 0;
+        }
+
+        return values;
+    }
+
+    protected override ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
+    {
+        var values = new ushort[numberOfPoints];
+        for (var i = 0; i < numberOfPoints; i++)
+        {
+            int offset = 9 + (i * 2);
+            values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
+        }
+
+        return values;
     }
 
     protected override async ValueTask<bool> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values)
@@ -95,8 +129,8 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : DefaultModbusClie
             throw new InvalidOperationException("站点未连接请先调用 ConnectAsync 方法连接设备");
         }
 
-        var data = WriteBoolValues(address, values);
-        var request = _builder.BuildWriteRequest(slaveAddress, functionCode, data);
+        var data = ReadOnlyMemory<byte>.Empty;  //WriteBoolValues(address, values);
+        var request = ModbusRtuMessageBuilder.BuildWriteRequest(slaveAddress, functionCode, data);
         _serialPort.Write(request.ToArray(), 0, request.Length);
 
         _readTaskCompletionSource = new TaskCompletionSource();
@@ -104,7 +138,7 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : DefaultModbusClie
         await _readTaskCompletionSource.Task.WaitAsync(_receiveCancellationTokenSource.Token);
 
         var received = ReadOnlyMemory<byte>.Empty;
-        if (!_builder.TryValidateReadResponse(received, functionCode, out var exception))
+        if (!ModbusRtuMessageBuilder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception))
         {
             Exception = exception;
             return false;
@@ -120,8 +154,8 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : DefaultModbusClie
             throw new InvalidOperationException("站点未连接请先调用 ConnectAsync 方法连接设备");
         }
 
-        var data = WriteUShortValues(address, values);
-        var request = _builder.BuildWriteRequest(slaveAddress, functionCode, data);
+        var data = ReadOnlyMemory<byte>.Empty; // WriteUShortValues(address, values);
+        var request = ModbusRtuMessageBuilder.BuildWriteRequest(slaveAddress, functionCode, data);
         _serialPort.Write(request.ToArray(), 0, request.Length);
 
         _readTaskCompletionSource = new TaskCompletionSource();
@@ -129,7 +163,7 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : DefaultModbusClie
         await _readTaskCompletionSource.Task.WaitAsync(_receiveCancellationTokenSource.Token);
 
         var received = ReadOnlyMemory<byte>.Empty;
-        if (!_builder.TryValidateReadResponse(received, functionCode, out var exception))
+        if (!ModbusRtuMessageBuilder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception))
         {
             Exception = exception;
             return false;

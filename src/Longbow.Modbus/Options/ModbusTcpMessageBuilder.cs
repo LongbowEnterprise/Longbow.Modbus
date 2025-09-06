@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
-using System;
-
 namespace Longbow.Modbus;
 
 /// <summary>
@@ -85,12 +83,13 @@ public class ModbusTcpMessageBuilder
     /// 验证 Modbus TCP 读取响应消息方法
     /// </summary>
     /// <param name="response"></param>
+    /// <param name="slaveAddress"></param>
     /// <param name="functionCode"></param>
     /// <param name="exception"></param>
     /// <returns></returns>
-    public bool TryValidateReadResponse(ReadOnlyMemory<byte> response, byte functionCode, [NotNullWhen(false)] out Exception? exception)
+    public bool TryValidateReadResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, [NotNullWhen(false)] out Exception? exception)
     {
-        if (!TryValidateHeader(response, functionCode, out exception))
+        if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
         {
             return false;
         }
@@ -111,13 +110,14 @@ public class ModbusTcpMessageBuilder
     /// 验证 Modbus TCP 写入响应消息方法
     /// </summary>
     /// <param name="response"></param>
+    /// <param name="slaveAddress"></param>
     /// <param name="functionCode"></param>
     /// <param name="data"></param>
     /// <param name="exception"></param>
     /// <returns></returns>
-    public bool TryValidateWriteResponse(ReadOnlyMemory<byte> response, byte functionCode, ReadOnlyMemory<byte> data, [NotNullWhen(false)] out Exception? exception)
+    public bool TryValidateWriteResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data, [NotNullWhen(false)] out Exception? exception)
     {
-        if (!TryValidateHeader(response, functionCode, out exception))
+        if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
         {
             return false;
         }
@@ -142,7 +142,7 @@ public class ModbusTcpMessageBuilder
         return true;
     }
 
-    private bool TryValidateHeader(ReadOnlyMemory<byte> response, byte functionCode, [NotNullWhen(false)] out Exception? exception)
+    private bool TryValidateHeader(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, [NotNullWhen(false)] out Exception? exception)
     {
         // 检查响应长度
         if (response.Length < 9)
@@ -158,10 +158,17 @@ public class ModbusTcpMessageBuilder
             return false;
         }
 
+        // 检查从站地址
+        if (response.Span[0] != slaveAddress)
+        {
+            exception = new Exception($"Slave address is insufficient 从站地址不匹配 期望值 0x{slaveAddress:X2} 实际值 0x{response.Span[0]:X2}");
+            return false;
+        }
+
         // 检查功能码 (正常响应应与请求相同，异常响应 = 请求功能码 + 0x80)
         if (response.Span[7] == 0x80 + functionCode)
         {
-            exception = new Exception($"Modbus abnormal response, error code: {response.Span[8]}. 异常响应，错误码: {response.Span[8]}");
+            exception = new Exception($"Modbus abnormal response, error code: {response.Span[8]}. 异常响应，错误码: {response.Span[8]} {GetErrorMessage(response.Span[8])}");
             return false;
         }
         else if (response.Span[7] != functionCode)
@@ -172,5 +179,17 @@ public class ModbusTcpMessageBuilder
 
         exception = null;
         return true;
+    }
+
+    private static string GetErrorMessage(byte errorCode)
+    {
+        return errorCode switch
+        {
+            0x01 => "非法功能码",
+            0x02 => "非法数据地址",
+            0x03 => "非法数据值",
+            0x04 => "从站设备故障",
+            _ => $"未知错误码: 0x{errorCode:X2}"
+        };
     }
 }
