@@ -50,7 +50,7 @@ public class RtuClientTest
         await using var client = factory.GetOrCreateRtuMaster("test");
 
         // 连接 Master
-        var connected = await client.ConnectAsync();
+        await client.ConnectAsync();
         var response = await client.ReadInputsAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -65,10 +65,10 @@ public class RtuClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test");
+        await using var client = factory.GetOrCreateRtuMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync();
         var response = await client.ReadHoldingRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -83,10 +83,10 @@ public class RtuClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test");
+        await using var client = factory.GetOrCreateRtuMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync();
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
