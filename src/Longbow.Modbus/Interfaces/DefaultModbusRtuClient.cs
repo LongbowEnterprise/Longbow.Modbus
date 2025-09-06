@@ -115,7 +115,7 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : DefaultModbusClie
         var values = new ushort[numberOfPoints];
         for (var i = 0; i < numberOfPoints; i++)
         {
-            int offset = 9 + (i * 2);
+            int offset = 3 + (i * 2);
             values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
         }
 
