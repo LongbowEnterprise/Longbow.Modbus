@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 using System.Runtime.Versioning;
 
@@ -11,7 +12,7 @@ namespace Longbow.Modbus;
 /// Represents a TCP socket for network communication.
 /// </summary>
 [UnsupportedOSPlatform("browser")]
-class DefaultModbusFactory(ITcpSocketFactory factory) : IModbusFactory
+class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 {
     private readonly ConcurrentDictionary<string, IModbusTcpClient> _tcpPool = new();
     private readonly ConcurrentDictionary<string, IModbusRtuClient> _rtuPool = new();
@@ -22,6 +23,8 @@ class DefaultModbusFactory(ITcpSocketFactory factory) : IModbusFactory
 
     private DefaultModbusTcpClient CreateTcpClient(Action<ModbusTcpClientOptions>? valueFactory = null)
     {
+        var factory = provider.GetRequiredService<ITcpSocketFactory>();
+
         var options = new ModbusTcpClientOptions();
         valueFactory?.Invoke(options);
 
@@ -49,10 +52,22 @@ class DefaultModbusFactory(ITcpSocketFactory factory) : IModbusFactory
 
     public IModbusRtuClient GetOrCreateRtuMaster(string? name = null, Action<ModbusRtuClientOptions>? valueFactory = null)
     {
-        var options = new ModbusRtuClientOptions();
-        valueFactory?.Invoke(options);
+        if (string.IsNullOrEmpty(name))
+        {
+            var options = new ModbusRtuClientOptions();
+            return new DefaultModbusRtuClient(options);
+        }
 
-        return new DefaultModbusRtuClient(options);
+        if (_rtuPool.TryGetValue(name, out var client))
+        {
+            return client;
+        }
+
+        var op = new ModbusRtuClientOptions();
+        valueFactory?.Invoke(op);
+        client = new DefaultModbusRtuClient(op);
+        _rtuPool.TryAdd(name, client);
+        return client;
     }
 
     public IModbusRtuClient? RemoveRtuMaster(string name)
