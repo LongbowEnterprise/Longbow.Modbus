@@ -51,13 +51,10 @@ abstract class ModbusClientBase : IModbusClient
     protected abstract ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values);
 
     /// <summary>
-    /// Releases the resources used by the current instance of the class.
+    /// 资源销毁方法
     /// </summary>
-    /// <remarks>This method is called to free both managed and unmanaged resources. If the <paramref
-    /// name="disposing"/> parameter is <see langword="true"/>, the method releases managed resources in addition to
-    /// unmanaged resources. Override this method in a derived class to provide custom cleanup logic.</remarks>
-    /// <param name="disposing"><see langword="true"/> to release both managed and unmanaged resources; <see langword="false"/> to release only
-    /// unmanaged resources.</param>
+    /// <param name="disposing"></param>
+    /// <returns></returns>
     protected abstract ValueTask DisposeAsync(bool disposing);
 
     /// <summary>
