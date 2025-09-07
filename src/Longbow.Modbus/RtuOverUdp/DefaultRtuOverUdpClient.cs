@@ -42,59 +42,39 @@ class DefaultModbusRtuOverUpdClient(ModbusUdpClientOptions options, IModbusRtuMe
         return ret;
     }
 
-    private async Task SendAsync(ReadOnlyMemory<byte> request)
+    private async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request)
     {
-        Exception = null;
-
-        try
-        {
-            var token = new CancellationTokenSource(options.WriteTimeout);
-            await _client.SendAsync(request, token.Token);
-        }
-        catch (Exception ex)
-        {
-            Exception = ex;
-        }
-    }
-
-    private async Task<ReadOnlyMemory<byte>> ReceiveAsync()
-    {
-        if (Exception != null)
-        {
-            return default;
-        }
+        _client.ThrowIfNotConnected();
 
         var ret = ReadOnlyMemory<byte>.Empty;
         try
         {
-            var token = new CancellationTokenSource(options.ReadTimeout);
-            var result = await _client.ReceiveAsync(token.Token);
+            var sendToken = new CancellationTokenSource(options.WriteTimeout);
+            await _client.SendAsync(request, sendToken.Token);
+
+            var receivetoken = new CancellationTokenSource(options.ReadTimeout);
+            var result = await _client.ReceiveAsync(receivetoken.Token);
             ret = result.Buffer;
         }
         catch (Exception ex)
         {
             Exception = ex;
         }
-
         return ret;
     }
 
     protected override async ValueTask<ReadOnlyMemory<byte>> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
     {
-        _client.ThrowIfNotConnected();
-
+        // 构建请求报文
         var request = builder.BuildReadRequest(slaveAddress, functionCode, startAddress, numberOfPoints);
-        await SendAsync(request);
-        var received = await ReceiveAsync();
 
-        if (Exception != null)
-        {
-            return default;
-        }
+        // 发送请求
+        var received = await SendAsync(request);
 
+        // 验证响应报文
         var valid = builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception);
-        Exception = valid ? null : exception;
 
+        Exception = valid ? null : exception;
         return valid ? received : default;
     }
 
@@ -104,38 +84,32 @@ class DefaultModbusRtuOverUpdClient(ModbusUdpClientOptions options, IModbusRtuMe
 
     protected override async ValueTask<bool> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values)
     {
-        _client.ThrowIfNotConnected();
-
+        // 构建请求报文
         var data = builder.WriteBoolValues(address, values);
         var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
-        await SendAsync(request);
-        var received = await ReceiveAsync();
 
-        if (Exception != null)
-        {
-            return false;
-        }
+        // 发送请求
+        var received = await SendAsync(request);
 
+        // 验证响应报文
         var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
+
         Exception = valid ? null : exception;
         return valid;
     }
 
     protected override async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values)
     {
-        _client.ThrowIfNotConnected();
-
+        // 构建请求报文
         var data = builder.WriteUShortValues(address, values);
         var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
-        await SendAsync(request);
-        var response = await ReceiveAsync();
 
-        if (Exception != null)
-        {
-            return false;
-        }
+        // 发送请求
+        var received = await SendAsync(request);
 
-        var valid = builder.TryValidateWriteResponse(response, slaveAddress, functionCode, data, out var exception);
+        // 验证响应报文
+        var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
+
         Exception = valid ? null : exception;
         return valid;
     }

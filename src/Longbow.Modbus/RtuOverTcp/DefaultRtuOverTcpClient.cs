@@ -12,27 +12,28 @@ class DefaultRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBuilder 
 
     public ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default) => client.ConnectAsync(endPoint, token);
 
-    protected override async ValueTask<ReadOnlyMemory<byte>> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
+    private async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request)
     {
         client.ThrowIfNotConnected();
 
-        var request = builder.BuildReadRequest(slaveAddress, functionCode, startAddress, numberOfPoints);
-        var result = await client.SendAsync(request);
-        if (!result)
-        {
-            return default;
-        }
-
-        _receiveCancellationTokenSource ??= new();
-        var received = await client.ReceiveAsync(_receiveCancellationTokenSource.Token);
-
-        if (!builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception))
-        {
-            Exception = exception;
-            return default;
-        }
-
+        await client.SendAsync(request);
+        var received = await client.ReceiveAsync();
         return received;
+    }
+
+    protected override async ValueTask<ReadOnlyMemory<byte>> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
+    {
+        // 构建请求报文
+        var request = builder.BuildReadRequest(slaveAddress, functionCode, startAddress, numberOfPoints);
+
+        // 发送请求
+        var received = await SendAsync(request);
+
+        // 验证响应报文
+        var valid = builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception);
+        Exception = valid ? null : exception;
+
+        return valid ? received : default;
     }
 
     protected override bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints) => builder.ReadBoolValues(response, numberOfPoints);
@@ -41,42 +42,34 @@ class DefaultRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBuilder 
 
     protected override async ValueTask<bool> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values)
     {
-        client.ThrowIfNotConnected();
-
+        // 构建请求报文
         var data = builder.WriteBoolValues(address, values);
         var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
-        var result = await client.SendAsync(request);
-        if (result)
-        {
-            var response = await client.ReceiveAsync();
-            if (!builder.TryValidateWriteResponse(response, slaveAddress, functionCode, data, out var exception))
-            {
-                Exception = exception;
-                result = false;
-            }
-        }
 
-        return result;
+        // 发送请求
+        var received = await SendAsync(request);
+
+        // 验证响应报文
+        var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
+        Exception = valid ? null : exception;
+
+        return valid;
     }
 
     protected override async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values)
     {
-        client.ThrowIfNotConnected();
-
+        // 构建请求报文
         var data = builder.WriteUShortValues(address, values);
         var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
-        var result = await client.SendAsync(request);
-        if (result)
-        {
-            var response = await client.ReceiveAsync();
-            if (!builder.TryValidateWriteResponse(response, slaveAddress, functionCode, data, out var exception))
-            {
-                Exception = exception;
-                result = false;
-            }
-        }
 
-        return result;
+        // 发送请求
+        var received = await SendAsync(request);
+
+        // 验证响应报文
+        var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
+        Exception = valid ? null : exception;
+
+        return valid;
     }
 
     /// <summary>

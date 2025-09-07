@@ -44,7 +44,7 @@ class DefaultRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBuilder 
         return ret;
     }
 
-    private async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> data)
+    private async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request)
     {
         // 取消等待读取的任务
         _readTaskCompletionSource?.TrySetCanceled();
@@ -59,7 +59,7 @@ class DefaultRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBuilder 
         _buffer = ReadOnlyMemory<byte>.Empty;
 
         var serialPort = GetSerialPort();
-        serialPort.Write(data.ToArray(), 0, data.Length);
+        serialPort.Write(request.ToArray(), 0, request.Length);
 
         await _readTaskCompletionSource.Task.WaitAsync(_receiveCancellationTokenSource.Token);
 
@@ -75,13 +75,10 @@ class DefaultRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBuilder 
         var received = await SendAsync(request);
 
         // 验证响应报文
-        if (!builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception))
-        {
-            Exception = exception;
-            return default;
-        }
+        var valid = builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception);
 
-        return received;
+        Exception = valid ? null : exception;
+        return valid ? received : default;
     }
 
     protected override async ValueTask<bool> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values)
@@ -94,13 +91,10 @@ class DefaultRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBuilder 
         var received = await SendAsync(request);
 
         // 验证响应报文
-        if (!builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception))
-        {
-            Exception = exception;
-            return false;
-        }
+        var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
 
-        return true;
+        Exception = valid ? null : exception;
+        return valid;
     }
 
     protected override async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values)
@@ -113,13 +107,10 @@ class DefaultRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBuilder 
         var received = await SendAsync(request);
 
         // 验证响应报文
-        if (!builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception))
-        {
-            Exception = exception;
-            return false;
-        }
+        var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
 
-        return true;
+        Exception = valid ? null : exception;
+        return valid;
     }
 
     private SerialPort GetSerialPort()
