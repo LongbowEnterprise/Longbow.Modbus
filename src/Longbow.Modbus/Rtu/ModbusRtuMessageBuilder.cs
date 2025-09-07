@@ -106,7 +106,7 @@ class ModbusRtuMessageBuilder : IModbusRtuMessageBuilder
 
         if (response.Length == 8 && response.Span[1] == functionCode)
         {
-            var expected = data[2..6];
+            var expected = data[0..4];
             var actual = response[2..6];
 
             if (!expected.Span.SequenceEqual(actual.Span))
