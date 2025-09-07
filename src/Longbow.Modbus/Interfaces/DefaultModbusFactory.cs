@@ -16,6 +16,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 {
     private readonly ConcurrentDictionary<string, IModbusTcpClient> _tcpPool = new();
     private readonly ConcurrentDictionary<string, IModbusRtuClient> _rtuPool = new();
+    private readonly ConcurrentDictionary<string, IModbusUdpClient> _udpPool = new();
 
     public IModbusTcpClient GetOrCreateTcpMaster(string? name, Action<ModbusTcpClientOptions>? valueFactory = null) => string.IsNullOrEmpty(name)
         ? CreateTcpClient(valueFactory)
@@ -77,6 +78,37 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
     {
         IModbusRtuClient? client = null;
         if (_rtuPool.TryRemove(name, out var c))
+        {
+            client = c;
+        }
+        return client;
+    }
+
+    public IModbusUdpClient GetOrCreateUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            var options = new ModbusUdpClientOptions();
+            valueFactory?.Invoke(options);
+            return new DefaultModbusUdpClient(options, provider.GetRequiredService<IModbusTcpMessageBuilder>());
+        }
+        if (_udpPool.TryGetValue(name, out var client))
+        {
+            return client;
+        }
+
+
+        var op = new ModbusUdpClientOptions();
+        valueFactory?.Invoke(op);
+        client = new DefaultModbusUdpClient(op, provider.GetRequiredService<IModbusTcpMessageBuilder>());
+        _udpPool.TryAdd(name, client);
+        return client;
+    }
+
+    public IModbusUdpClient? RemoveUdpMaster(string name)
+    {
+        IModbusUdpClient? client = null;
+        if (_udpPool.TryRemove(name, out var c))
         {
             client = c;
         }

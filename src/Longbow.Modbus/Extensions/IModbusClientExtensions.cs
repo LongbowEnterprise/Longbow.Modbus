@@ -3,6 +3,7 @@
 // Website: https://github.com/LongbowExtensions/
 
 using Longbow.TcpSocket;
+using System.Net.Sockets;
 using System.Runtime.Versioning;
 
 namespace Longbow.Modbus;
@@ -11,7 +12,7 @@ namespace Longbow.Modbus;
 /// <see cref="IModbusTcpClient"/> 扩展方法类
 /// </summary>
 [UnsupportedOSPlatform("browser")]
-public static class IModbusTcpClientExtensions
+public static class IModbusClientExtensions
 {
     /// <summary>
     /// Establishes an asynchronous connection to the specified host and port.
@@ -24,6 +25,20 @@ public static class IModbusTcpClientExtensions
     /// <returns>A task that represents the asynchronous operation. The task result is <see langword="true"/> if the connection
     /// is successfully established; otherwise, <see langword="false"/>.</returns>
     public static ValueTask<bool> ConnectAsync(this IModbusTcpClient client, string ipString, int port, CancellationToken token = default)
+    {
+        var endPoint = TcpSocketUtility.ConvertToIpEndPoint(ipString, port);
+        return client.ConnectAsync(endPoint, token);
+    }
+
+    /// <summary>
+    /// 连接到指定的主机和端口的异步连接。
+    /// </summary>
+    /// <param name="client"></param>
+    /// <param name="ipString"></param>
+    /// <param name="port"></param>
+    /// <param name="token"></param>
+    /// <returns></returns>
+    public static ValueTask<bool> ConnectAsync(this IModbusUdpClient client, string ipString, int port, CancellationToken token = default)
     {
         var endPoint = TcpSocketUtility.ConvertToIpEndPoint(ipString, port);
         return client.ConnectAsync(endPoint, token);
