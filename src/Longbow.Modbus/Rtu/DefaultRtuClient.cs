@@ -6,7 +6,7 @@ using System.IO.Ports;
 
 namespace Longbow.Modbus;
 
-class DefaultModbusRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBuilder builder) : ModbusClientBase, IModbusRtuClient
+class DefaultRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBuilder builder) : ModbusClientBase, IModbusRtuClient
 {
     private TaskCompletionSource? _readTaskCompletionSource;
     private CancellationTokenSource? _receiveCancellationTokenSource;

@@ -23,7 +23,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         ? CreateTcpClient(valueFactory)
         : _tcpPool.GetOrAdd(name, key => CreateTcpClient(valueFactory));
 
-    private DefaultModbusTcpClient CreateTcpClient(Action<ModbusTcpClientOptions>? valueFactory = null)
+    private DefaultTcpClient CreateTcpClient(Action<ModbusTcpClientOptions>? valueFactory = null)
     {
         var factory = provider.GetRequiredService<ITcpSocketFactory>();
 
@@ -40,7 +40,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
             op.LocalEndPoint = options.LocalEndPoint;
         });
         var builder = provider.GetRequiredService<IModbusTcpMessageBuilder>();
-        return new DefaultModbusTcpClient(client, builder);
+        return new DefaultTcpClient(client, builder);
     }
 
     public IModbusTcpClient? RemoveTcpMaster(string name)
@@ -60,7 +60,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         if (string.IsNullOrEmpty(name))
         {
             var options = new ModbusRtuClientOptions();
-            return new DefaultModbusRtuClient(options, builder);
+            return new DefaultRtuClient(options, builder);
         }
 
         if (_rtuPool.TryGetValue(name, out var client))
@@ -70,7 +70,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 
         var op = new ModbusRtuClientOptions();
         valueFactory?.Invoke(op);
-        client = new DefaultModbusRtuClient(op, builder);
+        client = new DefaultRtuClient(op, builder);
         _rtuPool.TryAdd(name, client);
         return client;
     }
@@ -91,7 +91,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         {
             var options = new ModbusUdpClientOptions();
             valueFactory?.Invoke(options);
-            return new DefaultModbusUdpClient(options, provider.GetRequiredService<IModbusTcpMessageBuilder>());
+            return new DefaultUdpClient(options, provider.GetRequiredService<IModbusTcpMessageBuilder>());
         }
         if (_udpPool.TryGetValue(name, out var client))
         {
@@ -101,7 +101,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 
         var op = new ModbusUdpClientOptions();
         valueFactory?.Invoke(op);
-        client = new DefaultModbusUdpClient(op, provider.GetRequiredService<IModbusTcpMessageBuilder>());
+        client = new DefaultUdpClient(op, provider.GetRequiredService<IModbusTcpMessageBuilder>());
         _udpPool.TryAdd(name, client);
         return client;
     }
@@ -120,7 +120,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         ? CreateRtuOverTcpClient(valueFactory)
         : _rtuOverTcpPool.GetOrAdd(name, key => CreateRtuOverTcpClient(valueFactory));
 
-    private DefaultModbusRtuOverTcpClient CreateRtuOverTcpClient(Action<ModbusTcpClientOptions>? valueFactory = null)
+    private DefaultRtuOverTcpClient CreateRtuOverTcpClient(Action<ModbusTcpClientOptions>? valueFactory = null)
     {
         var factory = provider.GetRequiredService<ITcpSocketFactory>();
 
@@ -137,7 +137,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
             op.LocalEndPoint = options.LocalEndPoint;
         });
         var builder = provider.GetRequiredService<IModbusRtuMessageBuilder>();
-        return new DefaultModbusRtuOverTcpClient(client, builder);
+        return new DefaultRtuOverTcpClient(client, builder);
     }
 
     public IModbusTcpClient? RemoveRtuOverTcpMaster(string name)

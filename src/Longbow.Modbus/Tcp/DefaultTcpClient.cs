@@ -6,7 +6,7 @@ using System.Net;
 
 namespace Longbow.Modbus;
 
-class DefaultModbusTcpClient(ITcpSocketClient client, IModbusTcpMessageBuilder builder) : ModbusClientBase, IModbusTcpClient
+class DefaultTcpClient(ITcpSocketClient client, IModbusTcpMessageBuilder builder) : ModbusClientBase, IModbusTcpClient
 {
     private CancellationTokenSource? _receiveCancellationTokenSource;
 
