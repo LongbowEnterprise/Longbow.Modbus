@@ -11,7 +11,7 @@ namespace Longbow.Modbus;
 /// <see cref="IModbusTcpClient"/> 扩展方法类
 /// </summary>
 [UnsupportedOSPlatform("browser")]
-public static class IModbusClientExtensions
+public static class IModbusTcpClientExtensions
 {
     /// <summary>
     /// Establishes an asynchronous connection to the specified host and port.

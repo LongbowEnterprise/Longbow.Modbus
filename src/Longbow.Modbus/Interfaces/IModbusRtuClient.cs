@@ -7,17 +7,16 @@ using System.Net;
 namespace Longbow.Modbus;
 
 /// <summary>
-/// Modbus TcpClient 客户端接口
+/// Modbus RtuClient 客户端接口
 /// </summary>
-public interface IModbusTcpClient : IModbusClient
+public interface IModbusRtuClient : IModbusClient
 {
     /// <summary>
     /// 异步连接方法
     /// </summary>
-    /// <param name="endPoint"></param>
     /// <param name="token"></param>
     /// <returns></returns>
-    ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default);
+    ValueTask<bool> ConnectAsync(CancellationToken token = default);
 
     /// <summary>
     /// 断开连接方法

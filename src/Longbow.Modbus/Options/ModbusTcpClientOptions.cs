@@ -21,9 +21,4 @@ public class ModbusTcpClientOptions : ModbusClientOptions
     /// </summary>
     /// <remarks>This property specifies the local network endpoint that the socket client will bind to when establishing a connection.</remarks>
     public IPEndPoint LocalEndPoint { get; set; } = new(IPAddress.Any, 0);
-
-    /// <summary>
-    /// 获得/设置 Modbus 服务器地址
-    /// </summary>
-    public IPEndPoint? RemoteEndPoint { get; set; }
 }

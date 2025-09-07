@@ -10,7 +10,7 @@ namespace Longbow.Modbus;
 public interface IModbusFactory
 {
     /// <summary>
-    /// 获得/创建 <see cref="IModbusTcpClient"/> 客户端实例
+    /// 获得/创建 <see cref="IModbusTcpClient"/> TcpClient 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <param name="valueFactory"></param>
@@ -23,4 +23,19 @@ public interface IModbusFactory
     /// <param name="name"></param>
     /// <returns></returns>
     IModbusTcpClient? RemoveTcpMaster(string name);
+
+    /// <summary>
+    /// 获得/创建 <see cref="IModbusRtuClient"/> RtuClient 客户端实例
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="valueFactory"></param>
+    /// <returns></returns>
+    IModbusRtuClient GetOrCreateRtuMaster(string? name = null, Action<ModbusRtuClientOptions>? valueFactory = null);
+
+    /// <summary>
+    /// 移除指定名称的 <see cref="IModbusRtuClient"/> 客户端实例
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    IModbusRtuClient? RemoveRtuMaster(string name);
 }

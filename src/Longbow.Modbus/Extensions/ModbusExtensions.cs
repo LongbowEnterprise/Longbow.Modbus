@@ -3,6 +3,7 @@
 // Website: https://github.com/LongbowExtensions/
 
 using Longbow.Modbus;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using System.Runtime.Versioning;
 
 namespace Microsoft.Extensions.DependencyInjection;
@@ -22,6 +23,10 @@ public static class ModbusExtensions
     {
         // 添加 IModbusFactory 服务
         services.AddSingleton<IModbusFactory, DefaultModbusFactory>();
+
+        // 添加解析器服务
+        services.TryAddSingleton<IModbusTcpMessageBuilder, ModbusTcpMessageBuilder>();
+        services.TryAddSingleton<IModbusRtuMessageBuilder, ModbusRtuMessageBuilder>();
 
         return services;
     }
