@@ -107,6 +107,9 @@ public class TcpClientTest
         await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.WriteCoilAsync(0x01, 0, true);
         Assert.True(response);
+
+        response = await client.WriteCoilAsync(0x01, 1, false);
+        Assert.True(response);
     }
 
     [Fact]
