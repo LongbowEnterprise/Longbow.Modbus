@@ -14,8 +14,9 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 {
     private readonly ConcurrentDictionary<string, IModbusTcpClient> _tcpPool = new();
     private readonly ConcurrentDictionary<string, IModbusRtuClient> _rtuPool = new();
-    private readonly ConcurrentDictionary<string, IModbusUdpClient> _udpPool = new();
+    private readonly ConcurrentDictionary<string, IModbusTcpClient> _udpPool = new();
     private readonly ConcurrentDictionary<string, IModbusTcpClient> _rtuOverTcpPool = new();
+    private readonly ConcurrentDictionary<string, IModbusTcpClient> _rtuOverUdpPool = new();
 
     public IModbusTcpClient GetOrCreateTcpMaster(string? name, Action<ModbusTcpClientOptions>? valueFactory = null) => string.IsNullOrEmpty(name)
         ? CreateTcpClient(valueFactory)
@@ -83,7 +84,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         return client;
     }
 
-    public IModbusUdpClient GetOrCreateUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null)
+    public IModbusTcpClient GetOrCreateUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null)
     {
         if (string.IsNullOrEmpty(name))
         {
@@ -104,9 +105,9 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         return client;
     }
 
-    public IModbusUdpClient? RemoveUdpMaster(string name)
+    public IModbusTcpClient? RemoveUdpMaster(string name)
     {
-        IModbusUdpClient? client = null;
+        IModbusTcpClient? client = null;
         if (_udpPool.TryRemove(name, out var c))
         {
             client = c;
@@ -148,7 +149,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         return client;
     }
 
-    public IModbusUdpClient GetOrCreateRtuOverUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null)
+    public IModbusTcpClient GetOrCreateRtuOverUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null)
     {
         if (string.IsNullOrEmpty(name))
         {
@@ -156,7 +157,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
             valueFactory?.Invoke(options);
             return new DefaultModbusRtuOverUpdClient(options, provider.GetRequiredService<IModbusRtuMessageBuilder>());
         }
-        if (_udpPool.TryGetValue(name, out var client))
+        if (_rtuOverUdpPool.TryGetValue(name, out var client))
         {
             return client;
         }
@@ -165,14 +166,14 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         var op = new ModbusUdpClientOptions();
         valueFactory?.Invoke(op);
         client = new DefaultModbusRtuOverUpdClient(op, provider.GetRequiredService<IModbusRtuMessageBuilder>());
-        _udpPool.TryAdd(name, client);
+        _rtuOverUdpPool.TryAdd(name, client);
         return client;
     }
 
-    public IModbusUdpClient? RemoveRtuOverUdpMaster(string name)
+    public IModbusTcpClient? RemoveRtuOverUdpMaster(string name)
     {
-        IModbusUdpClient? client = null;
-        if (_udpPool.TryRemove(name, out var c))
+        IModbusTcpClient? client = null;
+        if (_rtuOverUdpPool.TryRemove(name, out var c))
         {
             client = c;
         }

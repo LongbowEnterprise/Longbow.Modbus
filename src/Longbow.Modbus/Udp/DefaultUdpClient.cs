@@ -7,7 +7,7 @@ using System.Net.Sockets;
 
 namespace Longbow.Modbus;
 
-class DefaultUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBuilder builder) : ModbusClientBase(builder), IModbusUdpClient
+class DefaultUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBuilder builder) : ModbusClientBase(builder), IModbusTcpClient
 {
     private UdpClient _client = default!;
 

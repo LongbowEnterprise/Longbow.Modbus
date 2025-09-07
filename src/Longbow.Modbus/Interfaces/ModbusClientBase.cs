@@ -13,25 +13,25 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
     public async ValueTask<bool[]> ReadCoilsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints)
     {
         var response = await ReadAsync(slaveAddress, 0x01, startAddress, numberOfPoints);
-        return ReadBoolValues(response, numberOfPoints);
+        return builder.ReadBoolValues(response, numberOfPoints);
     }
 
     public async ValueTask<bool[]> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfInputs)
     {
         var response = await ReadAsync(slaveAddress, 0x02, startAddress, numberOfInputs);
-        return ReadBoolValues(response, numberOfInputs);
+        return builder.ReadBoolValues(response, numberOfInputs);
     }
 
     public async ValueTask<ushort[]> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints)
     {
         var response = await ReadAsync(slaveAddress, 0x03, startAddress, numberOfPoints);
-        return ReadUShortValues(response, numberOfPoints);
+        return builder.ReadUShortValues(response, numberOfPoints);
     }
 
     public async ValueTask<ushort[]> ReadInputRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints)
     {
         var response = await ReadAsync(slaveAddress, 0x04, startAddress, numberOfPoints);
-        return ReadUShortValues(response, numberOfPoints);
+        return builder.ReadUShortValues(response, numberOfPoints);
     }
 
     public ValueTask<bool> WriteCoilAsync(byte slaveAddress, ushort coilAddress, bool value) => WriteBoolValuesAsync(slaveAddress, 0x05, coilAddress, [value]);
@@ -88,10 +88,6 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         Exception = valid ? null : exception;
         return valid;
     }
-
-    private bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints) => builder.ReadBoolValues(response, numberOfPoints);
-
-    private ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints) => builder.ReadUShortValues(response, numberOfPoints);
 
     /// <summary>
     /// <inheritdoc/>

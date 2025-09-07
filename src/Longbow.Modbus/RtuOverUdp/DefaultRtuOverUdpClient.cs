@@ -7,7 +7,7 @@ using System.Net.Sockets;
 
 namespace Longbow.Modbus;
 
-class DefaultModbusRtuOverUpdClient(ModbusUdpClientOptions options, IModbusRtuMessageBuilder builder) : ModbusClientBase(builder), IModbusUdpClient
+class DefaultModbusRtuOverUpdClient(ModbusUdpClientOptions options, IModbusRtuMessageBuilder builder) : ModbusClientBase(builder), IModbusTcpClient
 {
     private UdpClient _client = default!;
 
