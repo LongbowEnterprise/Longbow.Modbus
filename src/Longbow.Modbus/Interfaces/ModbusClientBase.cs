@@ -58,10 +58,7 @@ abstract class ModbusClientBase : IModbusClient
     /// unmanaged resources. Override this method in a derived class to provide custom cleanup logic.</remarks>
     /// <param name="disposing"><see langword="true"/> to release both managed and unmanaged resources; <see langword="false"/> to release only
     /// unmanaged resources.</param>
-    protected virtual ValueTask DisposeAsync(bool disposing)
-    {
-        return ValueTask.CompletedTask;
-    }
+    protected abstract ValueTask DisposeAsync(bool disposing);
 
     /// <summary>
     /// <inheritdoc/>
