@@ -17,6 +17,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
     private readonly ConcurrentDictionary<string, IModbusTcpClient> _tcpPool = new();
     private readonly ConcurrentDictionary<string, IModbusRtuClient> _rtuPool = new();
     private readonly ConcurrentDictionary<string, IModbusUdpClient> _udpPool = new();
+    private readonly ConcurrentDictionary<string, IModbusTcpClient> _rtuOverTcpPool = new();
 
     public IModbusTcpClient GetOrCreateTcpMaster(string? name, Action<ModbusTcpClientOptions>? valueFactory = null) => string.IsNullOrEmpty(name)
         ? CreateTcpClient(valueFactory)
@@ -109,6 +110,40 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
     {
         IModbusUdpClient? client = null;
         if (_udpPool.TryRemove(name, out var c))
+        {
+            client = c;
+        }
+        return client;
+    }
+
+    public IModbusTcpClient GetOrCreateRtuOverTcpMaster(string? name = null, Action<ModbusTcpClientOptions>? valueFactory = null) => string.IsNullOrEmpty(name)
+        ? CreateRtuOverTcpClient(valueFactory)
+        : _rtuOverTcpPool.GetOrAdd(name, key => CreateRtuOverTcpClient(valueFactory));
+
+    private DefaultModbusRtuOverTcpClient CreateRtuOverTcpClient(Action<ModbusTcpClientOptions>? valueFactory = null)
+    {
+        var factory = provider.GetRequiredService<ITcpSocketFactory>();
+
+        var options = new ModbusTcpClientOptions();
+        valueFactory?.Invoke(options);
+
+        var client = factory.GetOrCreate(valueFactory: op =>
+        {
+            op.ConnectTimeout = options.ConnectTimeout;
+            op.SendTimeout = options.WriteTimeout;
+            op.ReceiveTimeout = options.ReadTimeout;
+            op.IsAutoReceive = false;
+            op.IsAutoReconnect = false;
+            op.LocalEndPoint = options.LocalEndPoint;
+        });
+        var builder = provider.GetRequiredService<IModbusRtuMessageBuilder>();
+        return new DefaultModbusRtuOverTcpClient(client, builder);
+    }
+
+    public IModbusTcpClient? RemoveRtuOverTcpMaster(string name)
+    {
+        IModbusTcpClient? client = null;
+        if (_rtuOverTcpPool.TryRemove(name, out var c))
         {
             client = c;
         }
