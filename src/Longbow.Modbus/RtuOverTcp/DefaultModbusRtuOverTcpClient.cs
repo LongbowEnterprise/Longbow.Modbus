@@ -40,7 +40,7 @@ class DefaultModbusRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBu
         var values = new bool[numberOfPoints];
         for (var i = 0; i < numberOfPoints; i++)
         {
-            var byteIndex = 9 + i / 8;
+            var byteIndex = 3 + i / 8;
             var bitIndex = i % 8;
             values[i] = (response.Span[byteIndex] & (1 << bitIndex)) != 0;
         }
@@ -53,7 +53,7 @@ class DefaultModbusRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBu
         var values = new ushort[numberOfPoints];
         for (var i = 0; i < numberOfPoints; i++)
         {
-            int offset = 9 + (i * 2);
+            int offset = 3 + (i * 2);
             values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
         }
 
@@ -130,6 +130,7 @@ class DefaultModbusRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBu
             data[2] = values[0] ? (byte)0xFF : (byte)0x00;
             data[3] = 0x00;
         }
+
         return data;
     }
 
@@ -160,6 +161,7 @@ class DefaultModbusRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBu
             data[2] = (byte)(values[0] >> 8);
             data[3] = (byte)(values[0] & 0xFF);
         }
+
         return data;
     }
 
