@@ -45,13 +45,16 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBu
 
     private async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> data)
     {
+        // 取消等待读取的任务
         _readTaskCompletionSource?.TrySetCanceled();
         _readTaskCompletionSource = new TaskCompletionSource();
 
+        // 取消接收数据的任务
         _receiveCancellationTokenSource?.Cancel();
         _receiveCancellationTokenSource?.Dispose();
         _receiveCancellationTokenSource = new();
 
+        // 清空缓存
         _buffer = ReadOnlyMemory<byte>.Empty;
 
         var serialPort = GetSerialPort();
