@@ -9,7 +9,7 @@ namespace Longbow.Modbus;
 /// <summary>
 /// Modbus RTU 消息构建器
 /// </summary>
-class ModbusRtuMessageBuilder : IModbusRtuMessageBuilder
+class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
 {
     /// <summary>
     /// 构建 Modbus RTU 读取消息方法
@@ -169,5 +169,97 @@ class ModbusRtuMessageBuilder : IModbusRtuMessageBuilder
             0x04 => "从站设备故障",
             _ => $"未知错误码: 0x{errorCode:X2}"
         };
+    }
+
+    public bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
+    {
+        var values = new bool[numberOfPoints];
+        for (var i = 0; i < numberOfPoints; i++)
+        {
+            var byteIndex = 3 + i / 8;
+            var bitIndex = i % 8;
+            values[i] = (response.Span[byteIndex] & (1 << bitIndex)) != 0;
+        }
+
+        return values;
+    }
+
+    public ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
+    {
+        var values = new ushort[numberOfPoints];
+        for (var i = 0; i < numberOfPoints; i++)
+        {
+            int offset = 3 + (i * 2);
+            values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
+        }
+
+        return values;
+    }
+
+    public ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
+    {
+        int byteCount = (values.Length + 7) / 8;
+        var data = new byte[values.Length > 1 ? 5 + byteCount : 4];
+        data[0] = (byte)(address >> 8);
+        data[1] = (byte)address;
+
+        if (values.Length > 1)
+        {
+            // 多值时，写入数量
+            data[2] = (byte)(values.Length >> 8);
+            data[3] = (byte)(values.Length);
+
+            // 字节数
+            data[4] = (byte)(byteCount);
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                if (values[i])
+                {
+                    int byteIndex = 5 + i / 8;
+                    int bitIndex = i % 8;
+                    data[byteIndex] |= (byte)(1 << bitIndex);
+                }
+            }
+        }
+        else
+        {
+            // 组装数据
+            data[2] = values[0] ? (byte)0xFF : (byte)0x00;
+            data[3] = 0x00;
+        }
+
+        return data;
+    }
+
+    public ReadOnlyMemory<byte> WriteUShortValues(ushort address, ushort[] values)
+    {
+        int byteCount = values.Length * 2;
+        var data = new byte[values.Length > 1 ? 5 + byteCount : 4];
+        data[0] = (byte)(address >> 8);
+        data[1] = (byte)address;
+
+        if (values.Length > 1)
+        {
+            // 多值时，写入数量
+            data[2] = (byte)(values.Length >> 8);
+            data[3] = (byte)(values.Length);
+
+            // 字节数
+            data[4] = (byte)(byteCount);
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                data[i * 2 + 5] = (byte)(values[i] >> 8);
+                data[i * 2 + 6] = (byte)(values[i] & 0xFF);
+            }
+        }
+        else
+        {
+            data[2] = (byte)(values[0] >> 8);
+            data[3] = (byte)(values[0] & 0xFF);
+        }
+
+        return data;
     }
 }

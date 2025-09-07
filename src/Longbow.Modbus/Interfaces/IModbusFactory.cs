@@ -2,11 +2,14 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
+using System.Runtime.Versioning;
+
 namespace Longbow.Modbus;
 
 /// <summary>
 /// ITcpSocketFactory Interface
 /// </summary>
+[UnsupportedOSPlatform("browser")]
 public interface IModbusFactory
 {
     /// <summary>
@@ -40,22 +43,22 @@ public interface IModbusFactory
     IModbusRtuClient? RemoveRtuMaster(string name);
 
     /// <summary>
-    /// 获得/创建 <see cref="IModbusUdpClient"/> UdpClient 客户端实例
+    /// 获得/创建 <see cref="IModbusTcpClient"/> UdpClient 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <param name="valueFactory"></param>
     /// <returns></returns>
-    IModbusUdpClient GetOrCreateUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null);
+    IModbusTcpClient GetOrCreateUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null);
 
     /// <summary>
-    /// 移除指定名称的 <see cref="IModbusUdpClient"/> 客户端实例
+    /// 移除指定名称的 <see cref="IModbusTcpClient"/> 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    IModbusUdpClient? RemoveUdpMaster(string name);
+    IModbusTcpClient? RemoveUdpMaster(string name);
 
     /// <summary>
-    /// 获得/创建 <see cref="IModbusRtuOverTcpClient"/> RTU Over TcpClient 客户端实例
+    /// 获得/创建 <see cref="IModbusTcpClient"/> RTU Over TcpClient 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <param name="valueFactory"></param>
@@ -63,24 +66,24 @@ public interface IModbusFactory
     IModbusTcpClient GetOrCreateRtuOverTcpMaster(string? name = null, Action<ModbusTcpClientOptions>? valueFactory = null);
 
     /// <summary>
-    /// 移除指定名称的 <see cref="IModbusUdpClient"/> 客户端实例
+    /// 移除指定名称的 <see cref="IModbusTcpClient"/> 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
     IModbusTcpClient? RemoveRtuOverTcpMaster(string name);
 
     /// <summary>
-    /// 获得/创建 <see cref="IModbusRtuOverUdpClient"/> RTU Over UdpClient 客户端实例
+    /// 获得/创建 <see cref="IModbusTcpClient"/> RTU Over UdpClient 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <param name="valueFactory"></param>
     /// <returns></returns>
-    IModbusUdpClient GetOrCreateRtuOverUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null);
+    IModbusTcpClient GetOrCreateRtuOverUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null);
 
     /// <summary>
-    /// 移除指定名称的 <see cref="IModbusUdpClient"/> 客户端实例
+    /// 移除指定名称的 <see cref="IModbusTcpClient"/> 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
-    IModbusUdpClient? RemoveRtuOverUdpMaster(string name);
+    IModbusTcpClient? RemoveRtuOverUdpMaster(string name);
 }
