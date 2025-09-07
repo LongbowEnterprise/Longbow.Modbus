@@ -58,7 +58,7 @@ public interface IModbusFactory
     IModbusUdpClient? RemoveUdpMaster(string name);
 
     /// <summary>
-    /// 获得/创建 <see cref="IModbusRtuOverTcpClient"/> RTU Over TcpClient 客户端实例
+    /// 获得/创建 <see cref="IModbusTcpClient"/> RTU Over TcpClient 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <param name="valueFactory"></param>
@@ -73,7 +73,7 @@ public interface IModbusFactory
     IModbusTcpClient? RemoveRtuOverTcpMaster(string name);
 
     /// <summary>
-    /// 获得/创建 <see cref="IModbusRtuOverUdpClient"/> RTU Over UdpClient 客户端实例
+    /// 获得/创建 <see cref="IModbusUdpClient"/> RTU Over UdpClient 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <param name="valueFactory"></param>

@@ -18,9 +18,4 @@ public interface IModbusRtuClient : IModbusClient
     /// <param name="token"></param>
     /// <returns></returns>
     ValueTask<bool> ConnectAsync(CancellationToken token = default);
-
-    /// <summary>
-    /// 断开连接方法
-    /// </summary>
-    ValueTask CloseAsync();
 }

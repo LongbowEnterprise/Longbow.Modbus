@@ -92,4 +92,9 @@ public interface IModbusClient : IAsyncDisposable
     /// <param name="data">Values to write.</param>
     /// <returns>A task that represents the asynchronous write operation.</returns>
     ValueTask<bool> WriteMultipleRegistersAsync(byte slaveAddress, ushort startAddress, ushort[] data);
+
+    /// <summary>
+    /// 断开连接方法
+    /// </summary>
+    ValueTask CloseAsync();
 }

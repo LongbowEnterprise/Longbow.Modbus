@@ -6,13 +6,13 @@ using System.Net;
 
 namespace Longbow.Modbus;
 
-class DefaultRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBuilder builder) : ModbusClientBase, IModbusTcpClient
+class DefaultRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBuilder builder) : ModbusClientBase(builder), IModbusTcpClient
 {
     private CancellationTokenSource? _receiveCancellationTokenSource;
 
     public ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default) => client.ConnectAsync(endPoint, token);
 
-    private async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request)
+    protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request)
     {
         client.ThrowIfNotConnected();
 
@@ -21,61 +21,10 @@ class DefaultRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBuilder 
         return received;
     }
 
-    protected override async ValueTask<ReadOnlyMemory<byte>> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
-    {
-        // 构建请求报文
-        var request = builder.BuildReadRequest(slaveAddress, functionCode, startAddress, numberOfPoints);
-
-        // 发送请求
-        var received = await SendAsync(request);
-
-        // 验证响应报文
-        var valid = builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception);
-        Exception = valid ? null : exception;
-
-        return valid ? received : default;
-    }
-
-    protected override bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints) => builder.ReadBoolValues(response, numberOfPoints);
-
-    protected override ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints) => builder.ReadUShortValues(response, numberOfPoints);
-
-    protected override async ValueTask<bool> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values)
-    {
-        // 构建请求报文
-        var data = builder.WriteBoolValues(address, values);
-        var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
-
-        // 发送请求
-        var received = await SendAsync(request);
-
-        // 验证响应报文
-        var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
-        Exception = valid ? null : exception;
-
-        return valid;
-    }
-
-    protected override async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values)
-    {
-        // 构建请求报文
-        var data = builder.WriteUShortValues(address, values);
-        var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
-
-        // 发送请求
-        var received = await SendAsync(request);
-
-        // 验证响应报文
-        var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
-        Exception = valid ? null : exception;
-
-        return valid;
-    }
-
     /// <summary>
     /// <inheritdoc/>
     /// </summary>
-    public async ValueTask CloseAsync()
+    public override async ValueTask CloseAsync()
     {
         // 取消接收数据的任务
         if (_receiveCancellationTokenSource != null)
@@ -88,19 +37,6 @@ class DefaultRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBuilder 
         if (client.IsConnected)
         {
             await client.CloseAsync();
-        }
-    }
-
-    /// <summary>
-    /// <inheritdoc/>
-    /// </summary>
-    /// <param name="disposing"></param>
-    /// <returns></returns>
-    protected override async ValueTask DisposeAsync(bool disposing)
-    {
-        if (disposing)
-        {
-            await CloseAsync();
         }
     }
 }
