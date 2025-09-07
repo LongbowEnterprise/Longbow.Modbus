@@ -3,11 +3,31 @@
 // Website: https://github.com/LongbowExtensions/
 
 using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 
 namespace UnitTestModbus;
 
 public class TcpClientTest
 {
+    [Fact]
+    public async Task Connect_Exception()
+    {
+        var sc = new ServiceCollection();
+        sc.AddTcpSocketFactory();
+        sc.AddModbusFactory();
+
+        var provider = sc.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IModbusFactory>();
+        await using var client = factory.GetOrCreateTcpMaster("test");
+
+        // 未连接 Master 直接读取
+        var ex = await Assert.ThrowsAnyAsync<InvalidOperationException>(async () =>
+        {
+            await client.ReadCoilsAsync(0x01, 0, 10);
+        });
+        Assert.NotNull(ex);
+    }
+
     [Fact]
     public async Task ReadCoilsAsync_Ok()
     {
@@ -19,7 +39,8 @@ public class TcpClientTest
         var factory = provider.GetRequiredService<IModbusFactory>();
         await using var client = factory.GetOrCreateTcpMaster("test", op =>
         {
-            op.ReadTimeout = 1000;
+            op.ConnectTimeout = 1000;
+            op.LocalEndPoint = new(IPAddress.Any, 0);
         });
 
         // 连接 Master
