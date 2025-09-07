@@ -93,7 +93,7 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBu
         var received = await SendAsync(request);
 
         // 验证响应报文
-        if (!builder.TryValidateWriteResponse(received, slaveAddress, functionCode, request, out var exception))
+        if (!builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception))
         {
             Exception = exception;
             return false;
@@ -112,7 +112,7 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBu
         var received = await SendAsync(request);
 
         // 验证响应报文
-        if (!builder.TryValidateWriteResponse(received, slaveAddress, functionCode, request, out var exception))
+        if (!builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception))
         {
             Exception = exception;
             return false;
@@ -250,6 +250,7 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBu
             data[2] = (byte)(values[0] >> 8);
             data[3] = (byte)(values[0] & 0xFF);
         }
+
         return data;
     }
 
