@@ -149,4 +149,35 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         }
         return client;
     }
+
+    public IModbusUdpClient GetOrCreateRtuOverUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null)
+    {
+        if (string.IsNullOrEmpty(name))
+        {
+            var options = new ModbusUdpClientOptions();
+            valueFactory?.Invoke(options);
+            return new DefaultModbusRtuOverUpdClient(options, provider.GetRequiredService<IModbusRtuMessageBuilder>());
+        }
+        if (_udpPool.TryGetValue(name, out var client))
+        {
+            return client;
+        }
+
+
+        var op = new ModbusUdpClientOptions();
+        valueFactory?.Invoke(op);
+        client = new DefaultModbusRtuOverUpdClient(op, provider.GetRequiredService<IModbusRtuMessageBuilder>());
+        _udpPool.TryAdd(name, client);
+        return client;
+    }
+
+    public IModbusUdpClient? RemoveRtuOverUdpMaster(string name)
+    {
+        IModbusUdpClient? client = null;
+        if (_udpPool.TryRemove(name, out var c))
+        {
+            client = c;
+        }
+        return client;
+    }
 }

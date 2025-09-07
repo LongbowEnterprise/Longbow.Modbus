@@ -40,6 +40,7 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBu
         {
             Exception = ex;
         }
+
         return ret;
     }
 

@@ -68,4 +68,19 @@ public interface IModbusFactory
     /// <param name="name"></param>
     /// <returns></returns>
     IModbusTcpClient? RemoveRtuOverTcpMaster(string name);
+
+    /// <summary>
+    /// 获得/创建 <see cref="IModbusRtuOverUdpClient"/> RTU Over UdpClient 客户端实例
+    /// </summary>
+    /// <param name="name"></param>
+    /// <param name="valueFactory"></param>
+    /// <returns></returns>
+    IModbusUdpClient GetOrCreateRtuOverUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null);
+
+    /// <summary>
+    /// 移除指定名称的 <see cref="IModbusUdpClient"/> 客户端实例
+    /// </summary>
+    /// <param name="name"></param>
+    /// <returns></returns>
+    IModbusUdpClient? RemoveRtuOverUdpMaster(string name);
 }

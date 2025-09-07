@@ -76,6 +76,7 @@ class DefaultModbusRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBu
                 result = false;
             }
         }
+
         return result;
     }
 
@@ -95,6 +96,7 @@ class DefaultModbusRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBu
                 result = false;
             }
         }
+
         return result;
     }
 

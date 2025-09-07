@@ -3,7 +3,6 @@
 // Website: https://github.com/LongbowExtensions/
 
 using Microsoft.Extensions.DependencyInjection;
-using System.Reflection.Metadata;
 
 namespace UnitTestModbus;
 
