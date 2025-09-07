@@ -37,7 +37,8 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
             op.IsAutoReconnect = false;
             op.LocalEndPoint = options.LocalEndPoint;
         });
-        return new DefaultModbusTcpClient(client);
+        var builder = provider.GetRequiredService<IModbusTcpMessageBuilder>();
+        return new DefaultModbusTcpClient(client, builder);
     }
 
     public IModbusTcpClient? RemoveTcpMaster(string name)
@@ -52,10 +53,12 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 
     public IModbusRtuClient GetOrCreateRtuMaster(string? name = null, Action<ModbusRtuClientOptions>? valueFactory = null)
     {
+        var builder = provider.GetRequiredService<IModbusRtuMessageBuilder>();
+
         if (string.IsNullOrEmpty(name))
         {
             var options = new ModbusRtuClientOptions();
-            return new DefaultModbusRtuClient(options);
+            return new DefaultModbusRtuClient(options, builder);
         }
 
         if (_rtuPool.TryGetValue(name, out var client))
@@ -65,7 +68,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 
         var op = new ModbusRtuClientOptions();
         valueFactory?.Invoke(op);
-        client = new DefaultModbusRtuClient(op);
+        client = new DefaultModbusRtuClient(op, builder);
         _rtuPool.TryAdd(name, client);
         return client;
     }

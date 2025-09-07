@@ -6,7 +6,7 @@ using System.IO.Ports;
 
 namespace Longbow.Modbus;
 
-class DefaultModbusRtuClient(ModbusRtuClientOptions options) : ModbusClientBase, IModbusRtuClient
+class DefaultModbusRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBuilder builder) : ModbusClientBase, IModbusRtuClient
 {
     private TaskCompletionSource? _readTaskCompletionSource;
     private CancellationTokenSource? _receiveCancellationTokenSource;
@@ -43,17 +43,108 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : ModbusClientBase,
         return ret;
     }
 
+    private async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> data)
+    {
+        _readTaskCompletionSource?.TrySetCanceled();
+        _readTaskCompletionSource = new TaskCompletionSource();
+
+        _receiveCancellationTokenSource?.Cancel();
+        _receiveCancellationTokenSource?.Dispose();
+        _receiveCancellationTokenSource = new();
+
+        _buffer = ReadOnlyMemory<byte>.Empty;
+
+        var serialPort = GetSerialPort();
+        serialPort.Write(data.ToArray(), 0, data.Length);
+
+        await _readTaskCompletionSource.Task.WaitAsync(_receiveCancellationTokenSource.Token);
+
+        return _buffer.ToArray();
+    }
+
+    protected override async ValueTask<ReadOnlyMemory<byte>> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
+    {
+        // 构建请求报文
+        var request = builder.BuildReadRequest(slaveAddress, functionCode, startAddress, numberOfPoints);
+
+        // 发送请求
+        var received = await SendAsync(request);
+
+        // 验证响应报文
+        if (!builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception))
+        {
+            Exception = exception;
+            return default;
+        }
+
+        return received;
+    }
+
+    protected override async ValueTask<bool> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values)
+    {
+        // 构建请求报文
+        var data = WriteBoolValues(address, values);
+        var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
+
+        // 发送请求
+        var received = await SendAsync(request);
+
+        // 验证响应报文
+        if (!builder.TryValidateWriteResponse(received, slaveAddress, functionCode, request, out var exception))
+        {
+            Exception = exception;
+            return false;
+        }
+
+        return true;
+    }
+
+    protected override async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values)
+    {
+        // 构建请求报文
+        var data = WriteUShortValues(address, values);
+        var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
+
+        // 发送请求
+        var received = await SendAsync(request);
+
+        // 验证响应报文
+        if (!builder.TryValidateWriteResponse(received, slaveAddress, functionCode, request, out var exception))
+        {
+            Exception = exception;
+            return false;
+        }
+
+        return true;
+    }
+
+    private SerialPort GetSerialPort()
+    {
+        if (_serialPort is not { IsOpen: true })
+        {
+            throw new InvalidOperationException("站点未连接请先调用 ConnectAsync 方法连接设备");
+        }
+
+        _serialPort.DiscardInBuffer();
+        _serialPort.DiscardOutBuffer();
+
+        return _serialPort;
+    }
+
     private void DataReceived(object? sender, SerialDataReceivedEventArgs e)
     {
-        if (e.EventType == SerialData.Chars && _serialPort is { IsOpen: true })
+        if (e.EventType == SerialData.Chars)
         {
-            var bytesToRead = _serialPort.BytesToRead;
-            if (bytesToRead > 0)
+            if (_serialPort != null)
             {
-                var buffer = new byte[bytesToRead];
-                if (_serialPort.Read(buffer, 0, bytesToRead) == buffer.Length)
+                var bytesToRead = _serialPort.BytesToRead;
+                if (bytesToRead > 0)
                 {
-                    _buffer = buffer;
+                    var buffer = new byte[bytesToRead];
+                    if (_serialPort.Read(buffer, 0, bytesToRead) == buffer.Length)
+                    {
+                        _buffer = buffer;
+                    }
                 }
             }
         }
@@ -66,35 +157,6 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : ModbusClientBase,
         // 处理串口错误
         Exception = new IOException($"Serial port error: {e.EventType}");
         _readTaskCompletionSource?.TrySetResult();
-    }
-
-    protected override async ValueTask<ReadOnlyMemory<byte>> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
-    {
-        if (_serialPort is not { IsOpen: true })
-        {
-            throw new InvalidOperationException("站点未连接请先调用 ConnectAsync 方法连接设备");
-        }
-
-        // 发送数据
-        _readTaskCompletionSource = new TaskCompletionSource();
-        _receiveCancellationTokenSource = new();
-        _buffer = ReadOnlyMemory<byte>.Empty;
-
-        var request = ModbusRtuMessageBuilder.BuildReadRequest(slaveAddress, functionCode, startAddress, numberOfPoints);
-        _serialPort.DiscardInBuffer();
-        _serialPort.DiscardOutBuffer();
-        _serialPort.Write(request.ToArray(), 0, request.Length);
-
-        await _readTaskCompletionSource.Task.WaitAsync(_receiveCancellationTokenSource.Token);
-
-        var received = _buffer.ToArray();
-        if (!ModbusRtuMessageBuilder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception))
-        {
-            Exception = exception;
-            return default;
-        }
-
-        return received;
     }
 
     protected override bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
@@ -120,62 +182,6 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : ModbusClientBase,
         }
 
         return values;
-    }
-
-    protected override async ValueTask<bool> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values)
-    {
-        if (_serialPort is not { IsOpen: true })
-        {
-            throw new InvalidOperationException("站点未连接请先调用 ConnectAsync 方法连接设备");
-        }
-
-        _readTaskCompletionSource = new TaskCompletionSource();
-        _receiveCancellationTokenSource = new();
-        _buffer = ReadOnlyMemory<byte>.Empty;
-
-        var data = WriteBoolValues(address, values);
-        var request = ModbusRtuMessageBuilder.BuildWriteRequest(slaveAddress, functionCode, data);
-        _serialPort.DiscardInBuffer();
-        _serialPort.DiscardOutBuffer();
-        _serialPort.Write(request.ToArray(), 0, request.Length);
-
-        await _readTaskCompletionSource.Task.WaitAsync(_receiveCancellationTokenSource.Token);
-
-        if (!ModbusRtuMessageBuilder.TryValidateWriteResponse(_buffer, functionCode, request, out var exception))
-        {
-            Exception = exception;
-            return false;
-        }
-
-        return true;
-    }
-
-    protected override async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values)
-    {
-        if (_serialPort is not { IsOpen: true })
-        {
-            throw new InvalidOperationException("站点未连接请先调用 ConnectAsync 方法连接设备");
-        }
-
-        _readTaskCompletionSource = new TaskCompletionSource();
-        _receiveCancellationTokenSource = new();
-        _buffer = ReadOnlyMemory<byte>.Empty;
-
-        var data = WriteUShortValues(address, values);
-        var request = ModbusRtuMessageBuilder.BuildWriteRequest(slaveAddress, functionCode, data);
-        _serialPort.DiscardInBuffer();
-        _serialPort.DiscardOutBuffer();
-        _serialPort.Write(request.ToArray(), 0, request.Length);
-
-        await _readTaskCompletionSource.Task.WaitAsync(_receiveCancellationTokenSource.Token);
-
-        if (!ModbusRtuMessageBuilder.TryValidateWriteResponse(_buffer, functionCode, request, out var exception))
-        {
-            Exception = exception;
-            return false;
-        }
-
-        return true;
     }
 
     private static ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
@@ -249,6 +255,13 @@ class DefaultModbusRtuClient(ModbusRtuClientOptions options) : ModbusClientBase,
     /// </summary>
     public ValueTask CloseAsync()
     {
+        // 取消等待读取的任务
+        if (_readTaskCompletionSource != null)
+        {
+            _readTaskCompletionSource.TrySetCanceled();
+            _readTaskCompletionSource = null;
+        }
+
         // 取消接收数据的任务
         if (_receiveCancellationTokenSource != null)
         {
