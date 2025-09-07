@@ -76,6 +76,7 @@ class DefaultModbusTcpClient(ITcpSocketClient client, IModbusTcpMessageBuilder b
                 result = false;
             }
         }
+
         return result;
     }
 
@@ -95,6 +96,7 @@ class DefaultModbusTcpClient(ITcpSocketClient client, IModbusTcpMessageBuilder b
                 result = false;
             }
         }
+
         return result;
     }
 
@@ -130,6 +132,7 @@ class DefaultModbusTcpClient(ITcpSocketClient client, IModbusTcpMessageBuilder b
             data[2] = values[0] ? (byte)0xFF : (byte)0x00;
             data[3] = 0x00;
         }
+
         return data;
     }
 
@@ -160,6 +163,7 @@ class DefaultModbusTcpClient(ITcpSocketClient client, IModbusTcpMessageBuilder b
             data[2] = (byte)(values[0] >> 8);
             data[3] = (byte)(values[0] & 0xFF);
         }
+
         return data;
     }
 

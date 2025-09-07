@@ -7,7 +7,7 @@ using System.Net.Sockets;
 
 namespace Longbow.Modbus;
 
-class DefaultModbusUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBuilder builder) : ModbusClientBase, IModbusUdpClient
+class DefaultModbusRtuOverUpdClient(ModbusUdpClientOptions options, IModbusRtuMessageBuilder builder) : ModbusClientBase, IModbusUdpClient
 {
     private UdpClient _client = default!;
 
@@ -103,7 +103,7 @@ class DefaultModbusUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBu
         var values = new bool[numberOfPoints];
         for (var i = 0; i < numberOfPoints; i++)
         {
-            var byteIndex = 9 + i / 8;
+            var byteIndex = 3 + i / 8;
             var bitIndex = i % 8;
             values[i] = (response.Span[byteIndex] & (1 << bitIndex)) != 0;
         }
@@ -116,7 +116,7 @@ class DefaultModbusUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBu
         var values = new ushort[numberOfPoints];
         for (var i = 0; i < numberOfPoints; i++)
         {
-            int offset = 9 + (i * 2);
+            int offset = 3 + (i * 2);
             values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
         }
 
@@ -139,7 +139,6 @@ class DefaultModbusUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBu
 
         var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
         Exception = valid ? null : exception;
-
         return valid;
     }
 
@@ -159,7 +158,6 @@ class DefaultModbusUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBu
 
         var valid = builder.TryValidateWriteResponse(response, slaveAddress, functionCode, data, out var exception);
         Exception = valid ? null : exception;
-
         return valid;
     }
 
