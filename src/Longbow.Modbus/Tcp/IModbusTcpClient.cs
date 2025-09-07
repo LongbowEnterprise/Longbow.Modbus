@@ -3,12 +3,14 @@
 // Website: https://github.com/LongbowExtensions/
 
 using System.Net;
+using System.Runtime.Versioning;
 
 namespace Longbow.Modbus;
 
 /// <summary>
 /// Modbus TcpClient 客户端接口
 /// </summary>
+[UnsupportedOSPlatform("browser")]
 public interface IModbusTcpClient : IModbusClient
 {
     /// <summary>

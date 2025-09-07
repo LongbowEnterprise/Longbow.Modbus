@@ -4,14 +4,12 @@
 
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
-using System.Runtime.Versioning;
 
 namespace Longbow.Modbus;
 
 /// <summary>
 /// Represents a TCP socket for network communication.
 /// </summary>
-[UnsupportedOSPlatform("browser")]
 class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 {
     private readonly ConcurrentDictionary<string, IModbusTcpClient> _tcpPool = new();
