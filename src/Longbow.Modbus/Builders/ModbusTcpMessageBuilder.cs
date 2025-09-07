@@ -7,7 +7,7 @@ namespace Longbow.Modbus;
 /// <summary>
 /// Modbus TCP 消息构建器
 /// </summary>
-sealed class ModbusTcpMessageBuilder
+sealed class ModbusTcpMessageBuilder : IModbusTcpMessageBuilder
 {
     // 事务标识符计数器
     private uint _transactionId = 0;
