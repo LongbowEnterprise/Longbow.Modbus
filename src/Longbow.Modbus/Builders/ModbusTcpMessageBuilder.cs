@@ -168,7 +168,7 @@ sealed class ModbusTcpMessageBuilder : IModbusTcpMessageBuilder
         // 检查从站地址
         if (response.Span[6] != slaveAddress)
         {
-            exception = new Exception($"Slave address is insufficient 从站地址不匹配 期望值 0x{slaveAddress:X2} 实际值 0x{response.Span[0]:X2}");
+            exception = new Exception($"Slave address is insufficient 从站地址不匹配 期望值 0x{slaveAddress:X2} 实际值 0x{response.Span[6]:X2}");
             return false;
         }
 
