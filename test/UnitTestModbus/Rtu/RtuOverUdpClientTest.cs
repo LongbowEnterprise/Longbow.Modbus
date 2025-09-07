@@ -6,18 +6,17 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace UnitTestModbus;
 
-public class RtuOverTcpClientTest
+public class RtuOverUdpClientTest
 {
     [Fact]
     public async Task ReadCoilsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateRtuOverTcpMaster("test");
+        await using var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
         var connected = await client.ConnectAsync("127.0.0.1", 502);
@@ -32,12 +31,11 @@ public class RtuOverTcpClientTest
     public async Task ReadInputsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuOverTcpMaster("test");
+        var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 502);
@@ -50,12 +48,11 @@ public class RtuOverTcpClientTest
     public async Task ReadHoldingRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuOverTcpMaster("test");
+        var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 502);
@@ -68,12 +65,11 @@ public class RtuOverTcpClientTest
     public async Task ReadInputRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuOverTcpMaster("test");
+        var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 502);
@@ -86,12 +82,11 @@ public class RtuOverTcpClientTest
     public async Task WriteCoilAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuOverTcpMaster("test");
+        var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 502);
@@ -106,12 +101,11 @@ public class RtuOverTcpClientTest
     public async Task WriteMultipleCoilsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuOverTcpMaster("test");
+        var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 502);
@@ -123,12 +117,11 @@ public class RtuOverTcpClientTest
     public async Task WriteRegisterAsync()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuOverTcpMaster("test");
+        var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 502);
@@ -140,12 +133,11 @@ public class RtuOverTcpClientTest
     public async Task WriteMultipleRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuOverTcpMaster("test");
+        var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 502);
