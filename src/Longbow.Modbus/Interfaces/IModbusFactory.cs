@@ -25,7 +25,7 @@ public interface IModbusFactory
     IModbusTcpClient? RemoveTcpMaster(string name);
 
     /// <summary>
-    /// 获得/创建 <see cref="IModbusTcpClient"/> RtuClient 客户端实例
+    /// 获得/创建 <see cref="IModbusRtuClient"/> RtuClient 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <param name="valueFactory"></param>
@@ -33,7 +33,7 @@ public interface IModbusFactory
     IModbusRtuClient GetOrCreateRtuMaster(string? name = null, Action<ModbusRtuClientOptions>? valueFactory = null);
 
     /// <summary>
-    /// 移除指定名称的 <see cref="IModbusTcpClient"/> 客户端实例
+    /// 移除指定名称的 <see cref="IModbusRtuClient"/> 客户端实例
     /// </summary>
     /// <param name="name"></param>
     /// <returns></returns>
