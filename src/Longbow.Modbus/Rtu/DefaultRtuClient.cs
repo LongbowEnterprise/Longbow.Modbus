@@ -113,23 +113,18 @@ class DefaultRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBuilder 
     public override ValueTask CloseAsync()
     {
         // 取消等待读取的任务
-        if (_readTaskCompletionSource != null)
-        {
-            _readTaskCompletionSource.TrySetCanceled();
-            _readTaskCompletionSource = null;
-        }
+        _readTaskCompletionSource?.TrySetCanceled();
+        _readTaskCompletionSource = null;
 
         // 取消接收数据的任务
-        if (_receiveCancellationTokenSource != null)
-        {
-            _receiveCancellationTokenSource.Cancel();
-            _receiveCancellationTokenSource.Dispose();
-            _receiveCancellationTokenSource = null;
-        }
+        _receiveCancellationTokenSource?.Cancel();
+        _receiveCancellationTokenSource?.Dispose();
+        _receiveCancellationTokenSource = null;
 
         if (_serialPort is { IsOpen: true })
         {
             _serialPort.Close();
+            _serialPort.Dispose();
         }
         return ValueTask.CompletedTask;
     }
