@@ -7,7 +7,7 @@ namespace Longbow.Modbus;
 /// <summary>
 /// Modbus 客户端配置选项类
 /// </summary>
-public class ModbusClientOptions
+public abstract class ModbusClientOptions
 {
     /// <summary>
     /// 获得/设置 读取超时时间 默认 1000ms
