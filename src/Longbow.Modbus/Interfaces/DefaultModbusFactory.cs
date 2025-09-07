@@ -16,6 +16,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 {
     private readonly ConcurrentDictionary<string, IModbusTcpClient> _tcpPool = new();
     private readonly ConcurrentDictionary<string, IModbusRtuClient> _rtuPool = new();
+    private readonly ConcurrentDictionary<string, IModbusUdpClient> _udpPool = new();
 
     public IModbusTcpClient GetOrCreateTcpMaster(string? name, Action<ModbusTcpClientOptions>? valueFactory = null) => string.IsNullOrEmpty(name)
         ? CreateTcpClient(valueFactory)
@@ -83,32 +84,31 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         return client;
     }
 
-    public IModbusRtuClient GetOrCreateUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null)
+    public IModbusUdpClient GetOrCreateUdpMaster(string? name = null, Action<ModbusUdpClientOptions>? valueFactory = null)
     {
-        var builder = provider.GetRequiredService<IModbusTcpMessageBuilder>();
-
         if (string.IsNullOrEmpty(name))
         {
             var options = new ModbusUdpClientOptions();
-            return new DefaultModbusUdpClient(options, builder);
+            valueFactory?.Invoke(options);
+            return new DefaultModbusUdpClient(options, provider.GetRequiredService<IModbusTcpMessageBuilder>());
         }
-
-        if (_rtuPool.TryGetValue(name, out var client))
+        if (_udpPool.TryGetValue(name, out var client))
         {
             return client;
         }
 
+
         var op = new ModbusUdpClientOptions();
         valueFactory?.Invoke(op);
-        client = new DefaultModbusUdpClient(op, builder);
-        _rtuPool.TryAdd(name, client);
+        client = new DefaultModbusUdpClient(op, provider.GetRequiredService<IModbusTcpMessageBuilder>());
+        _udpPool.TryAdd(name, client);
         return client;
     }
 
-    public IModbusRtuClient? RemoveUdpMaster(string name)
+    public IModbusUdpClient? RemoveUdpMaster(string name)
     {
-        IModbusRtuClient? client = null;
-        if (_rtuPool.TryRemove(name, out var c))
+        IModbusUdpClient? client = null;
+        if (_udpPool.TryRemove(name, out var c))
         {
             client = c;
         }

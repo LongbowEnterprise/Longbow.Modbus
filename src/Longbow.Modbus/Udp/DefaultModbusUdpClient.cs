@@ -2,37 +2,98 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
+using System.ComponentModel.DataAnnotations;
 using System.Net;
+using System.Net.Sockets;
 
 namespace Longbow.Modbus;
 
-class DefaultModbusUdpClient(ITcpSocketClient client, IModbusTcpMessageBuilder builder) : ModbusClientBase, IModbusTcpClient
+class DefaultModbusUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBuilder builder) : ModbusClientBase, IModbusUdpClient
 {
-    private CancellationTokenSource? _receiveCancellationTokenSource;
+    private UdpClient _client = default!;
 
-    public ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default) => client.ConnectAsync(endPoint, token);
+    public async ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default)
+    {
+        var ret = false;
+        _client = new UdpClient(options.LocalEndPoint);
+
+        try
+        {
+            await Task.Run(() =>
+            {
+                try
+                {
+                    _client.Connect(endPoint);
+                }
+                catch (Exception ex)
+                {
+                    _client.Dispose();
+                    _client = default!;
+
+                    Exception = ex;
+                }
+            }, token);
+            ret = true;
+        }
+        catch (Exception ex)
+        {
+            Exception = ex;
+        }
+        return ret;
+    }
+
+    private async Task SendAsync(ReadOnlyMemory<byte> request)
+    {
+        Exception = null;
+
+        try
+        {
+            var token = new CancellationTokenSource(options.WriteTimeout);
+            await _client.SendAsync(request, token.Token);
+        }
+        catch (Exception ex)
+        {
+            Exception = ex;
+        }
+    }
+
+    private async Task<ReadOnlyMemory<byte>> ReceiveAsync()
+    {
+        if (Exception != null)
+        {
+            return default;
+        }
+
+        var ret = ReadOnlyMemory<byte>.Empty;
+        try
+        {
+            var token = new CancellationTokenSource(options.ReadTimeout);
+            var result = await _client.ReceiveAsync(token.Token);
+            ret = result.Buffer;
+        }
+        catch (Exception ex)
+        {
+            Exception = ex;
+        }
+        return ret;
+    }
 
     protected override async ValueTask<ReadOnlyMemory<byte>> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
     {
-        client.ThrowIfNotConnected();
+        _client.ThrowIfNotConnected();
 
         var request = builder.BuildReadRequest(slaveAddress, functionCode, startAddress, numberOfPoints);
-        var result = await client.SendAsync(request);
-        if (!result)
+        await SendAsync(request);
+        var received = await ReceiveAsync();
+
+        if (Exception != null)
         {
             return default;
         }
 
-        _receiveCancellationTokenSource ??= new();
-        var received = await client.ReceiveAsync(_receiveCancellationTokenSource.Token);
-
-        if (!builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception))
-        {
-            Exception = exception;
-            return default;
-        }
-
-        return received;
+        var valid = builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception);
+        Exception = valid ? null : exception;
+        return valid ? received : default;
     }
 
     protected override bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
@@ -62,40 +123,40 @@ class DefaultModbusUdpClient(ITcpSocketClient client, IModbusTcpMessageBuilder b
 
     protected override async ValueTask<bool> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values)
     {
-        client.ThrowIfNotConnected();
+        _client.ThrowIfNotConnected();
 
         var data = WriteBoolValues(address, values);
         var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
-        var result = await client.SendAsync(request);
-        if (result)
+        await SendAsync(request);
+        var received = await ReceiveAsync();
+
+        if (Exception != null)
         {
-            var response = await client.ReceiveAsync();
-            if (!builder.TryValidateWriteResponse(response, slaveAddress, functionCode, data, out var exception))
-            {
-                Exception = exception;
-                result = false;
-            }
+            return false;
         }
-        return result;
+
+        var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
+        Exception = valid ? null : exception;
+        return valid;
     }
 
     protected override async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values)
     {
-        client.ThrowIfNotConnected();
+        _client.ThrowIfNotConnected();
 
         var data = WriteUShortValues(address, values);
         var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
-        var result = await client.SendAsync(request);
-        if (result)
+        await SendAsync(request);
+        var response = await ReceiveAsync();
+
+        if (Exception != null)
         {
-            var response = await client.ReceiveAsync();
-            if (!builder.TryValidateWriteResponse(response, slaveAddress, functionCode, data, out var exception))
-            {
-                Exception = exception;
-                result = false;
-            }
+            return false;
         }
-        return result;
+
+        var valid = builder.TryValidateWriteResponse(response, slaveAddress, functionCode, data, out var exception);
+        Exception = valid ? null : exception;
+        return valid;
     }
 
     private static ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
@@ -166,20 +227,16 @@ class DefaultModbusUdpClient(ITcpSocketClient client, IModbusTcpMessageBuilder b
     /// <summary>
     /// <inheritdoc/>
     /// </summary>
-    public async ValueTask CloseAsync()
+    public ValueTask CloseAsync()
     {
-        // 取消接收数据的任务
-        if (_receiveCancellationTokenSource != null)
+        if (_client != null)
         {
-            _receiveCancellationTokenSource.Cancel();
-            _receiveCancellationTokenSource.Dispose();
-            _receiveCancellationTokenSource = null;
+            _client.Close();
+            _client.Dispose();
+            _client = default!;
         }
 
-        if (client.IsConnected)
-        {
-            await client.CloseAsync();
-        }
+        return ValueTask.CompletedTask;
     }
 
     /// <summary>
