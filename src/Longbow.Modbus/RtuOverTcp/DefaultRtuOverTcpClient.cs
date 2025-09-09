@@ -12,7 +12,7 @@ class DefaultRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBuilder 
 
     public ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default) => client.ConnectAsync(endPoint, token);
 
-    protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request)
+    protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)
     {
         client.ThrowIfNotConnected();
 

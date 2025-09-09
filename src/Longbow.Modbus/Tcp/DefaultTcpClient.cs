@@ -10,12 +10,12 @@ class DefaultTcpClient(ITcpSocketClient client, IModbusTcpMessageBuilder builder
 {
     public ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default) => client.ConnectAsync(endPoint, token);
 
-    protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request)
+    protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)
     {
         client.ThrowIfNotConnected();
 
-        await client.SendAsync(request);
-        var received = await client.ReceiveAsync();
+        await client.SendAsync(request, token);
+        var received = await client.ReceiveAsync(token);
         return received;
     }
 
