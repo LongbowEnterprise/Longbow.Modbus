@@ -23,8 +23,8 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
     public ReadOnlyMemory<byte> BuildReadRequest(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
     {
         var transactionId = GetTransactionId();
-        byte[] request =
-        [
+        Span<byte> request = stackalloc byte[]
+        {
             // MBAP头（7字节）
             (byte)(transactionId >> 8),   // 00 事务标识符高字节（可随机）
             (byte)(transactionId & 0xFF), // 01 事务标识符低字节
@@ -40,9 +40,9 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
             (byte)(startAddress & 0xFF),   // 09 起始地址低字节
             (byte)(numberOfPoints >> 8),   // 10 寄存器数量高字节
             (byte)(numberOfPoints & 0xFF), // 11 寄存器数量低字节
-        ];
+        };
 
-        return request;
+        return request.ToArray();
     }
 
     /// <summary>
@@ -55,7 +55,8 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
     public ReadOnlyMemory<byte> BuildWriteRequest(byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
     {
         var transactionId = GetTransactionId();
-        var request = new byte[8 + data.Length];
+
+        Span<byte> request = stackalloc byte[8 + data.Length];
 
         // MBAP头（7字节）
         request[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
@@ -70,9 +71,9 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         request[7] = functionCode;                  // 07 功能码
 
         // 写入数据部分
-        data.CopyTo(request.AsMemory(8));
+        data.Span.CopyTo(request[8..]);
 
-        return request;
+        return request.ToArray();
     }
 
     private uint GetTransactionId()
@@ -215,20 +216,33 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
 
     public ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
     {
-        var values = new ushort[numberOfPoints];
-        for (var i = 0; i < numberOfPoints; i++)
+        try
         {
-            int offset = 9 + (i * 2);
-            values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
-        }
+            var values = new ushort[numberOfPoints];
+            if (response.Length != 0)
+            {
+                for (var i = 0; i < numberOfPoints; i++)
+                {
+                    int offset = 9 + (i * 2);
+                    values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
+                }
+            }
 
-        return values;
+            return values;
+        }
+        catch (Exception ex)
+        {
+            using var fs = new StreamWriter(File.OpenWrite("c:\\log\\log.txt"));
+            fs.WriteLine($"response: {BitConverter.ToString(response.ToArray())} numberOfPoints {numberOfPoints}");
+            fs.Close();
+            throw new Exception("Failed to parse ushort values 解析ushort值失败", ex);
+        }
     }
 
     public ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
     {
         int byteCount = (values.Length + 7) / 8;
-        var data = new byte[values.Length > 1 ? 5 + byteCount : 4];
+        Span<byte> data = stackalloc byte[values.Length > 1 ? 5 + byteCount : 4];
         data[0] = (byte)(address >> 8);
         data[1] = (byte)address;
 
@@ -258,13 +272,13 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
             data[3] = 0x00;
         }
 
-        return data;
+        return data.ToArray();
     }
 
     public ReadOnlyMemory<byte> WriteUShortValues(ushort address, ushort[] values)
     {
         int byteCount = values.Length * 2;
-        var data = new byte[values.Length > 1 ? 5 + byteCount : 4];
+        Span<byte> data = stackalloc byte[values.Length > 1 ? 5 + byteCount : 4];
         data[0] = (byte)(address >> 8);
         data[1] = (byte)address;
 
@@ -289,6 +303,6 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
             data[3] = (byte)(values[0] & 0xFF);
         }
 
-        return data;
+        return data.ToArray();
     }
 }
