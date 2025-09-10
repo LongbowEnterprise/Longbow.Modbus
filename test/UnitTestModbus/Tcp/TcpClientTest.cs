@@ -195,7 +195,7 @@ public class TcpClientTest
         var factory = provider.GetRequiredService<IModbusFactory>();
 
         var clients = new List<IModbusClient>();
-        for (var index = 0; index < 1; index++)
+        for (var index = 0; index < 2; index++)
         {
             var client = factory.GetOrCreateUdpMaster();
             await client.ConnectAsync("127.0.0.1", 502);
@@ -218,7 +218,7 @@ public class TcpClientTest
                 tasks.Add(task);
             }
             return tasks;
-        });
+        }).ToList();
 
         await Task.WhenAll(tasks);
 
