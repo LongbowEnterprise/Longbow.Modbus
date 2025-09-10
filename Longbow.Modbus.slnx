@@ -22,6 +22,7 @@
     <File Path="SourceLink.targets" />
   </Folder>
   <Folder Name="/src/">
+    <Project Path="../Longbow.TcpSocket/src/Longbow.TcpSocket/Longbow.TcpSocket.csproj" />
     <Project Path="src/Longbow.Modbus/Longbow.Modbus.csproj" />
   </Folder>
   <Folder Name="/test/">
