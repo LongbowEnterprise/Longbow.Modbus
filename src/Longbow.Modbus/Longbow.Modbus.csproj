@@ -53,11 +53,7 @@
 
   <ItemGroup>
     <PackageReference Include="Longbow.Socket" Version="9.*" />
-    <!--<PackageReference Include="Longbow.TcpSocket" Version="9.*" />-->
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\Longbow.TcpSocket\src\Longbow.TcpSocket\Longbow.TcpSocket.csproj" />
+    <PackageReference Include="Longbow.TcpSocket" Version="9.*" />
   </ItemGroup>
 
   <ItemGroup>
