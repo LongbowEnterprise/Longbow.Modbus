@@ -44,7 +44,7 @@ class DefaultRtuClient(ModbusRtuClientOptions options, IModbusRtuMessageBuilder 
         return ret;
     }
 
-    protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request)
+    protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)
     {
         // 取消等待读取的任务
         _readTaskCompletionSource?.TrySetCanceled();

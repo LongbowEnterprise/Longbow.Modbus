@@ -42,7 +42,7 @@ class DefaultUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBuilder 
         return ret;
     }
 
-    protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request)
+    protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)
     {
         _client.ThrowIfNotConnected();
 

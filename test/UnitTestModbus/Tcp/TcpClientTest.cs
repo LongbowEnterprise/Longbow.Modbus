@@ -183,4 +183,46 @@ public class TcpClientTest
         var response = await client.WriteMultipleRegistersAsync(0x01, 0, [12, 0, 23, 0, 46, 0, 01, 02, 04, 05]);
         Assert.True(response);
     }
+
+    [Fact]
+    public async Task ThreadSafe_Ok()
+    {
+        var sc = new ServiceCollection();
+        sc.AddTcpSocketFactory();
+        sc.AddModbusFactory();
+
+        var provider = sc.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IModbusFactory>();
+
+        var clients = new List<IModbusClient>();
+        for (var index = 0; index < 2; index++)
+        {
+            var client = factory.GetOrCreateUdpMaster();
+            await client.ConnectAsync("127.0.0.1", 502);
+            await client.ReadHoldingRegistersAsync(0x01, 0x00, 10);
+
+            clients.Add(client);
+        }
+
+        var results = new List<ushort[]>();
+        var tasks = clients.SelectMany(c =>
+        {
+            var tasks = new List<Task>();
+            for (int i = 0; i < 10; i++)
+            {
+                var task = Task.Run(async () =>
+                {
+                    var v = await c.ReadHoldingRegistersAsync(1, 0, 10);
+                    results.Add(v);
+                });
+                tasks.Add(task);
+            }
+            return tasks;
+        }).ToList();
+
+        await Task.WhenAll(tasks);
+
+        var failed = results.Count(i => i.All(v => v == 0));
+        Assert.Equal(0, failed);
+    }
 }
