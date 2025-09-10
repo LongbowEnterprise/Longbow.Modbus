@@ -64,10 +64,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
         finally
         {
-            if (_semaphore.CurrentCount == 0)
-            {
-                _semaphore.Release();
-            }
+            Release();
         }
     }
 
@@ -92,10 +89,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
         finally
         {
-            if (_semaphore.CurrentCount == 0)
-            {
-                _semaphore.Release();
-            }
+            Release();
         }
     }
 
@@ -120,10 +114,15 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
         finally
         {
-            if (_semaphore.CurrentCount == 0)
-            {
-                _semaphore.Release();
-            }
+            Release();
+        }
+    }
+
+    private void Release()
+    {
+        if (_semaphore.CurrentCount == 0)
+        {
+            _semaphore.Release();
         }
     }
 
