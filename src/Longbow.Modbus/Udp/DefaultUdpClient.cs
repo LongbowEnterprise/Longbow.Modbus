@@ -52,8 +52,8 @@ class DefaultUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBuilder 
             var sendToken = new CancellationTokenSource(options.WriteTimeout);
             await _client.SendAsync(request, sendToken.Token);
 
-            var receivetoken = new CancellationTokenSource(options.ReadTimeout);
-            var result = await _client.ReceiveAsync(receivetoken.Token);
+            var receiveToken = new CancellationTokenSource(options.ReadTimeout);
+            var result = await _client.ReceiveAsync(receiveToken.Token);
             ret = result.Buffer;
         }
         catch (Exception ex)
