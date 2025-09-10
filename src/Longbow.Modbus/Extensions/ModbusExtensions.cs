@@ -25,8 +25,8 @@ public static class ModbusExtensions
         services.AddSingleton<IModbusFactory, DefaultModbusFactory>();
 
         // 添加解析器服务
-        services.TryAddSingleton<IModbusTcpMessageBuilder, DefaultTcpMessageBuilder>();
-        services.TryAddSingleton<IModbusRtuMessageBuilder, DefaultRtuMessageBuilder>();
+        services.TryAddTransient<IModbusTcpMessageBuilder, DefaultTcpMessageBuilder>();
+        services.TryAddTransient<IModbusRtuMessageBuilder, DefaultRtuMessageBuilder>();
 
         return services;
     }
