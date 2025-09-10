@@ -197,7 +197,7 @@ public class TcpClientTest
         var clients = new List<IModbusClient>();
         for (var index = 0; index < 2; index++)
         {
-            var client = factory.GetOrCreateUdpMaster();
+            var client = factory.GetOrCreateTcpMaster();
             await client.ConnectAsync("127.0.0.1", 502);
             await client.ReadHoldingRegistersAsync(0x01, 0x00, 10);
 
@@ -221,6 +221,8 @@ public class TcpClientTest
         }).ToList();
 
         await Task.WhenAll(tasks);
+
+        Assert.Equal(20, results.Count);
 
         var failed = results.Count(i => i.All(v => v == 0));
         Assert.Equal(0, failed);

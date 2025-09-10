@@ -235,7 +235,7 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
             using var fs = new StreamWriter(File.OpenWrite("c:\\log\\log.txt"));
             fs.WriteLine($"response: {BitConverter.ToString(response.ToArray())} numberOfPoints {numberOfPoints}");
             fs.Close();
-            throw new Exception("Failed to parse ushort values 解析ushort值失败", ex);
+            throw new Exception("Failed to parse ushort values 解析 ushort 值失败", ex);
         }
     }
 
