@@ -53,14 +53,18 @@
 
   <ItemGroup>
     <PackageReference Include="Longbow.Socket" Version="9.*" />
-    <PackageReference Include="Longbow.TcpSocket" Version="9.*" />
+    <!--<PackageReference Include="Longbow.TcpSocket" Version="9.*" />-->
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Longbow.Socket.DataAdapters" />
-    <Using Include="Longbow.Socket.DataHandlers" />
-    <Using Include="Longbow.Socket.DataConverters" />
-    <Using Include="Longbow.Socket.Logging" />
+    <ProjectReference Include="..\..\..\Longbow.TcpSocket\src\Longbow.TcpSocket\Longbow.TcpSocket.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Longbow.Sockets.DataAdapters" />
+    <Using Include="Longbow.Sockets.DataHandlers" />
+    <Using Include="Longbow.Sockets.DataConverters" />
+    <Using Include="Longbow.Sockets.Logging" />
     <Using Include="Longbow.TcpSocket" />
   </ItemGroup>
 
