@@ -21,4 +21,9 @@ public class ModbusTcpClientOptions : ModbusClientOptions
     /// </summary>
     /// <remarks>This property specifies the local network endpoint that the socket client will bind to when establishing a connection.</remarks>
     public IPEndPoint LocalEndPoint { get; set; } = new(IPAddress.Any, 0);
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the Nagle algorithm is disabled for the socket connection. Default value is true.
+    /// </summary>
+    public bool NoDelay { get; set; } = true;
 }

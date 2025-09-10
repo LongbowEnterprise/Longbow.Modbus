@@ -37,6 +37,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
             op.IsAutoReceive = false;
             op.IsAutoReconnect = false;
             op.LocalEndPoint = options.LocalEndPoint;
+            op.NoDelay = options.NoDelay;
         });
         var builder = provider.GetRequiredService<IModbusTcpMessageBuilder>();
         return new DefaultTcpClient(client, builder);
