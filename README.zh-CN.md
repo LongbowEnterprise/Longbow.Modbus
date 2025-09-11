@@ -42,11 +42,32 @@ var tcpClient = modbusFactory.GetOrCreateTcpMaster("tcp-client", options =>
     options.LocalEndPoint = new IPEndPoint(IPAddress.Any, 0);
 });
 
+// 创建 UDP 客户端
+var udpClient = modbusFactory.GetOrCreateUdpMaster("udp-client", options =>
+{
+    options.ConnectTimeout = 5000;
+    options.LocalEndPoint = new IPEndPoint(IPAddress.Any, 0);
+});
+
 // 创建 RTU 客户端
 var rtuClient = modbusFactory.GetOrCreateRtuMaster("rtu-client", options =>
 {
     options.PortName = "COM1";
     options.BaudRate = 9600;
+});
+
+// 创建 RTU Over TCP 客户端
+var rtuClient = modbusFactory.GetOrCreateRtuOverTcpMaster("rtu-over-tcp-client", options =>
+{
+    options.ConnectTimeout = 5000;
+    options.LocalEndPoint = new IPEndPoint(IPAddress.Any, 0);
+});
+
+// 创建 RTU Over UDP 客户端
+var rtuClient = modbusFactory.GetOrCreateRtuOverUdpMaster("rtu-over-udp-client", options =>
+{
+    options.ConnectTimeout = 5000;
+    options.LocalEndPoint = new IPEndPoint(IPAddress.Any, 0);
 });
 ```
 
@@ -75,6 +96,9 @@ ushort[] inputRegisters = await client.ReadInputRegistersAsync(1, 0, 10);
 
 // 读取保持寄存器
 ushort[] holdingRegisters = await client.ReadHoldingRegistersAsync(1, 0, 10);
+
+// 读取输入寄存器
+ushort[] holdingRegisters = await client.ReadInputRegistersAsync(1, 0, 10);
 ```
 
 ### 5. 写入数据
@@ -119,13 +143,14 @@ await client.WriteMultipleRegistersAsync(1, 0, new ushort[] { 1234, 5678 });
 
 ## 📄 许可证
 
-本项目采用 [MIT License](LICENSE)，请查看 `LICENSE` 文件以获取详细信息。
+本项目采用 [Apache License](LICENSE)，请查看 `LICENSE` 文件以获取详细信息。
 
 ## 🔗 相关链接
 
-- [GitHub 项目主页](https://gitee.com/LongbowEnterprise/Longbow.Modbus)
+- [Gitee 项目主页](https://gitee.com/LongbowEnterprise/Longbow.Modbus)
+- [Github 项目主页](https://github.com/LongbowEnterprise/Longbow.Modbus)
 - [NuGet 包](https://www.nuget.org/packages/Longbow.Modbus)
 
 ## 📞 联系方式
 
-如需联系开发者，请查看项目主页或提交问题到 [Issues](https://gitee.com/LongbowEnterprise/Longbow.Modbus/issues)。
+如需联系开发者，请查看项目主页或提交问题到 [Gitee Issues](https://gitee.com/LongbowEnterprise/Longbow.Modbus/issues) [Github Issues](https://github.com/LongbowEnterprise/Longbow.Modbus/issues)。。
