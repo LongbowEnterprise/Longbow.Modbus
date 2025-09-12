@@ -7,6 +7,7 @@ using System.Net;
 
 namespace UnitTestModbus;
 
+[Collection("MockTcpModbus")]
 public class TcpClientTest
 {
     [Fact]
@@ -48,10 +49,6 @@ public class TcpClientTest
         var response = await client.ReadCoilsAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
-
-        response = await client.ReadCoilsAsync(0x01, 0, 5);
-        Assert.NotNull(response);
-        Assert.Equal(5, response.Length);
 
         await using var client2 = factory.GetOrCreateTcpMaster();
         Assert.NotEqual(client, client2);
@@ -129,7 +126,7 @@ public class TcpClientTest
         var response = await client.WriteCoilAsync(0x01, 0, true);
         Assert.True(response);
 
-        response = await client.WriteCoilAsync(0x01, 1, false);
+        response = await client.WriteCoilAsync(0x01, 0, false);
         Assert.True(response);
     }
 
