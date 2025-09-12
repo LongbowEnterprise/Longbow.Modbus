@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace UnitTestModbus;
 
+[Collection("MockRtuOverUdpModbus")]
 public class RtuOverUdpClientTest
 {
     [Fact]
@@ -19,7 +20,7 @@ public class RtuOverUdpClientTest
         await using var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
-        var connected = await client.ConnectAsync("127.0.0.1", 502);
+        var connected = await client.ConnectAsync("127.0.0.1", 503);
         Assert.True(connected);
 
         var response = await client.ReadCoilsAsync(0x01, 0, 10);
@@ -38,7 +39,7 @@ public class RtuOverUdpClientTest
         var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 503);
         var response = await client.ReadInputsAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -55,7 +56,7 @@ public class RtuOverUdpClientTest
         var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 503);
         var response = await client.ReadHoldingRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -72,7 +73,7 @@ public class RtuOverUdpClientTest
         var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 503);
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -89,7 +90,7 @@ public class RtuOverUdpClientTest
         var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 503);
         var response = await client.WriteCoilAsync(0x01, 0, true);
         Assert.True(response);
 
@@ -108,7 +109,7 @@ public class RtuOverUdpClientTest
         var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 503);
         var response = await client.WriteMultipleCoilsAsync(0x01, 0, [true, true, true, true, true, true, true, true, false, true]);
         Assert.True(response);
     }
@@ -124,7 +125,7 @@ public class RtuOverUdpClientTest
         var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 503);
         var response = await client.WriteRegisterAsync(0x01, 0, 12);
         Assert.True(response);
     }
@@ -140,7 +141,7 @@ public class RtuOverUdpClientTest
         var client = factory.GetOrCreateRtuOverUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 503);
         var response = await client.WriteMultipleRegistersAsync(0x01, 0, [12, 0, 23, 0, 46, 0, 01, 02, 04, 05]);
         Assert.True(response);
     }
