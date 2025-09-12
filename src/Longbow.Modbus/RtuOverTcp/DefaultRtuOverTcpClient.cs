@@ -8,16 +8,14 @@ namespace Longbow.Modbus;
 
 class DefaultRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBuilder builder) : ModbusClientBase(builder), IModbusTcpClient
 {
-    private CancellationTokenSource? _receiveCancellationTokenSource;
-
     public ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default) => client.ConnectAsync(endPoint, token);
 
     protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)
     {
         client.ThrowIfNotConnected();
 
-        await client.SendAsync(request);
-        var received = await client.ReceiveAsync();
+        await client.SendAsync(request, token);
+        var received = await client.ReceiveAsync(token);
         return received;
     }
 
@@ -26,14 +24,6 @@ class DefaultRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBuilder 
     /// </summary>
     public override async ValueTask CloseAsync()
     {
-        // 取消接收数据的任务
-        if (_receiveCancellationTokenSource != null)
-        {
-            _receiveCancellationTokenSource.Cancel();
-            _receiveCancellationTokenSource.Dispose();
-            _receiveCancellationTokenSource = null;
-        }
-
         if (client.IsConnected)
         {
             await client.CloseAsync();
