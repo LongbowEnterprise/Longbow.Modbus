@@ -153,4 +153,4 @@ await client.WriteMultipleRegistersAsync(1, 0, new ushort[] { 1234, 5678 });
 
 ## 📞 联系方式
 
-如需联系开发者，请查看项目主页或提交问题到 [Gitee Issues](https://gitee.com/LongbowEnterprise/Longbow.Modbus/issues) 或者 [Github Issues](https://github.com/LongbowEnterprise/Longbow.Modbus/issues)。。
+如需联系开发者，请查看项目主页或提交问题到 [Gitee Issues](https://gitee.com/LongbowEnterprise/Longbow.Modbus/issues) 或者 [Github Issues](https://github.com/LongbowEnterprise/Longbow.Modbus/issues)。
