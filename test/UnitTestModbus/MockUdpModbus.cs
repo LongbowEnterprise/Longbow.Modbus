@@ -42,43 +42,42 @@ internal static class MockUdpModbus
                 if (data[7] == 0x01)
                 {
                     // ReadCoilAsync
-                    await server.SendToAsync(GenerateResponse(request, "00 00 00 05 01 01 02 05 00"), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockTcpResponse.ReadCoilResponse(request), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[7] == 0x02)
                 {
                     // ReadInputsAsync
-                    await server.SendToAsync(GenerateResponse(request, "00 00 00 05 01 02 02 00 00"), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockTcpResponse.ReadInputsResponse(request), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[7] == 0x03)
                 {
                     // ReadHoldingRegistersAsync
-                    await server.SendToAsync(GenerateResponse(request, "00 00 00 17 01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04 00 05"), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockTcpResponse.ReadHoldingRegistersResponse(request), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[7] == 0x04)
                 {
                     // ReadInputRegistersAsync
-                    await server.SendToAsync(GenerateResponse(request, "00 00 00 17 01 04 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockTcpResponse.ReadInputRegistersResponse(request), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[7] == 0x05)
                 {
                     // WriteCoilAsync
-                    var v = data[10] == 0xFF ? "FF" : "00";
-                    await server.SendToAsync(GenerateResponse(request, $"00 00 00 06 01 05 00 00 {v} 00"), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockTcpResponse.WriteCoilResponse(request), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[7] == 0x06)
                 {
                     // WriteMultipleCoilsAsync
-                    await server.SendToAsync(GenerateResponse(request, "00 00 00 06 01 06 00 00 00 0C"), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockTcpResponse.WriteMultipleCoilsResponse(request), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[7] == 0x0F)
                 {
                     // WriteRegisterAsync
-                    await server.SendToAsync(GenerateResponse(request, "00 00 00 06 01 0F 00 00 00 0A"), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockTcpResponse.WriteRegisterResponse(request), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[7] == 0x10)
                 {
                     // WriteMultipleRegistersAsync
-                    await server.SendToAsync(GenerateResponse(request, "00 00 00 06 01 10 00 00 00 0A"), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockTcpResponse.WriteMultipleRegistersResponse(request), response.RemoteEndPoint, CancellationToken.None);
                 }
             }
         }

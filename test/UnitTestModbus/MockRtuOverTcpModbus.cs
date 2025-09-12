@@ -37,7 +37,7 @@ internal static class MockRtuOverTcpModbus
 
     private static async Task MockAsync(TcpClient client)
     {
-        using var stream = client.GetStream();
+        await using var stream = client.GetStream();
         while (true)
         {
             var buffer = new byte[1024];
@@ -54,43 +54,42 @@ internal static class MockRtuOverTcpModbus
                 if (request[1] == 0x01)
                 {
                     // ReadCoilAsync
-                    await stream.WriteAsync(HexConverter.ToBytes("01 01 02 FD 02 78 AD", " "), CancellationToken.None);
+                    await stream.WriteAsync(MockRtuResponse.ReadCoilResponse(), CancellationToken.None);
                 }
                 else if (request[1] == 0x02)
                 {
                     // ReadInputsAsync
-                    await stream.WriteAsync(HexConverter.ToBytes("01 02 02 00 00 B9 B8", " "), CancellationToken.None);
+                    await stream.WriteAsync(MockRtuResponse.ReadInputsResponse(), CancellationToken.None);
                 }
                 else if (request[1] == 0x03)
                 {
                     // ReadHoldingRegistersAsync
-                    await stream.WriteAsync(HexConverter.ToBytes("01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04 00 05 90 D2", " "), CancellationToken.None);
+                    await stream.WriteAsync(MockRtuResponse.ReadHoldingRegistersResponse(), CancellationToken.None);
                 }
                 else if (request[1] == 0x04)
                 {
                     // ReadInputRegistersAsync
-                    await stream.WriteAsync(HexConverter.ToBytes("01 04 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 95 81", " "), CancellationToken.None);
+                    await stream.WriteAsync(MockRtuResponse.ReadInputRegistersResponse(), CancellationToken.None);
                 }
                 else if (request[1] == 0x05)
                 {
                     // WriteCoilAsync
-                    var v = request[4] == 0xFF ? "01 05 00 00 FF 00 8C 3A" : "01 05 00 01 00 00 9C 0A";
-                    await stream.WriteAsync(HexConverter.ToBytes(v, " "), CancellationToken.None);
+                    await stream.WriteAsync(MockRtuResponse.WriteCoilResponse(request), CancellationToken.None);
                 }
                 else if (request[1] == 0x06)
                 {
                     // WriteMultipleCoilsAsync
-                    await stream.WriteAsync(HexConverter.ToBytes("01 06 00 00 00 0C 89 CF", " "), CancellationToken.None);
+                    await stream.WriteAsync(MockRtuResponse.WriteMultipleCoilsResponse(), CancellationToken.None);
                 }
                 else if (request[1] == 0x0F)
                 {
                     // WriteRegisterAsync
-                    await stream.WriteAsync(HexConverter.ToBytes("01 0F 00 00 00 0A D5 CC", " "), CancellationToken.None);
+                    await stream.WriteAsync(MockRtuResponse.WriteRegisterResponse(), CancellationToken.None);
                 }
                 else if (request[1] == 0x10)
                 {
                     // WriteMultipleRegistersAsync
-                    await stream.WriteAsync(HexConverter.ToBytes("01 10 00 00 00 0A 40 0E", " "), CancellationToken.None);
+                    await stream.WriteAsync(MockRtuResponse.WriteMultipleRegistersResponse(), CancellationToken.None);
                 }
             }
         }

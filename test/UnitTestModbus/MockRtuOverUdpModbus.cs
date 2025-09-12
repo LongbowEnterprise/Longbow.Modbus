@@ -43,43 +43,42 @@ internal static class MockRtuOverUdpModbus
                 if (data[1] == 0x01)
                 {
                     // ReadCoilAsync
-                    await server.SendToAsync(HexConverter.ToBytes("01 01 02 FD 02 78 AD", " "), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.ReadCoilResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[1] == 0x02)
                 {
                     // ReadInputsAsync
-                    await server.SendToAsync(HexConverter.ToBytes("01 02 02 00 00 B9 B8", " "), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.ReadInputsResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[1] == 0x03)
                 {
                     // ReadHoldingRegistersAsync
-                    await server.SendToAsync(HexConverter.ToBytes("01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04 00 05 90 D2", " "), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.ReadHoldingRegistersResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[1] == 0x04)
                 {
                     // ReadInputRegistersAsync
-                    await server.SendToAsync(HexConverter.ToBytes("01 04 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 95 81", " "), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.ReadInputRegistersResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[1] == 0x05)
                 {
                     // WriteCoilAsync
-                    var v = data[4] == 0xFF ? "01 05 00 00 FF 00 8C 3A" : "01 05 00 01 00 00 9C 0A";
-                    await server.SendToAsync(HexConverter.ToBytes(v, " "), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.WriteCoilResponse(request), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[1] == 0x06)
                 {
                     // WriteMultipleCoilsAsync
-                    await server.SendToAsync(HexConverter.ToBytes("01 06 00 00 00 0C 89 CF", " "), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.WriteMultipleCoilsResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[1] == 0x0F)
                 {
                     // WriteRegisterAsync
-                    await server.SendToAsync(HexConverter.ToBytes("01 0F 00 00 00 0A D5 CC", " "), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.WriteRegisterResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
                 else if (data[1] == 0x10)
                 {
                     // WriteMultipleRegistersAsync
-                    await server.SendToAsync(HexConverter.ToBytes("01 10 00 00 00 0A 40 0E", " "), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.WriteMultipleRegistersResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
             }
         }

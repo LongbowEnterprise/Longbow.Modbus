@@ -54,43 +54,42 @@ internal static class MockTcpModbus
                 if (request[7] == 0x01)
                 {
                     // ReadCoilAsync
-                    await stream.WriteAsync(GenerateResponse(request, "00 00 00 05 01 01 02 05 00"), CancellationToken.None);
+                    await stream.WriteAsync(MockTcpResponse.ReadCoilResponse(request), CancellationToken.None);
                 }
                 else if (request[7] == 0x02)
                 {
                     // ReadInputsAsync
-                    await stream.WriteAsync(GenerateResponse(request, "00 00 00 05 01 02 02 00 00"), CancellationToken.None);
+                    await stream.WriteAsync(MockTcpResponse.ReadInputsResponse(request), CancellationToken.None);
                 }
                 else if (request[7] == 0x03)
                 {
                     // ReadHoldingRegistersAsync
-                    await stream.WriteAsync(GenerateResponse(request, "00 00 00 17 01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04 00 05"), CancellationToken.None);
+                    await stream.WriteAsync(MockTcpResponse.ReadHoldingRegistersResponse(request), CancellationToken.None);
                 }
                 else if (request[7] == 0x04)
                 {
                     // ReadInputRegistersAsync
-                    await stream.WriteAsync(GenerateResponse(request, "00 00 00 17 01 04 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00"), CancellationToken.None);
+                    await stream.WriteAsync(MockTcpResponse.ReadInputRegistersResponse(request), CancellationToken.None);
                 }
                 else if (request[7] == 0x05)
                 {
                     // WriteCoilAsync
-                    var v = request[10] == 0xFF ? "FF" : "00";
-                    await stream.WriteAsync(GenerateResponse(request, $"00 00 00 06 01 05 00 00 {v} 00"), CancellationToken.None);
+                    await stream.WriteAsync(MockTcpResponse.WriteCoilResponse(request), CancellationToken.None);
                 }
                 else if (request[7] == 0x06)
                 {
                     // WriteMultipleCoilsAsync
-                    await stream.WriteAsync(GenerateResponse(request, "00 00 00 06 01 06 00 00 00 0C"), CancellationToken.None);
+                    await stream.WriteAsync(MockTcpResponse.WriteMultipleCoilsResponse(request), CancellationToken.None);
                 }
                 else if (request[7] == 0x0F)
                 {
                     // WriteRegisterAsync
-                    await stream.WriteAsync(GenerateResponse(request, "00 00 00 06 01 0F 00 00 00 0A"), CancellationToken.None);
+                    await stream.WriteAsync(MockTcpResponse.WriteRegisterResponse(request), CancellationToken.None);
                 }
                 else if (request[7] == 0x10)
                 {
                     // WriteMultipleRegistersAsync
-                    await stream.WriteAsync(GenerateResponse(request, "00 00 00 06 01 10 00 00 00 0A"), CancellationToken.None);
+                    await stream.WriteAsync(MockTcpResponse.WriteMultipleRegistersResponse(request), CancellationToken.None);
                 }
             }
         }
