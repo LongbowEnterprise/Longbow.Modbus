@@ -26,8 +26,8 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         Span<byte> request = stackalloc byte[]
         {
             // MBAP头（7字节）
-            (byte)(transactionId >> 8),   // 00 事务标识符高字节（可随机）
-            (byte)(transactionId & 0xFF), // 01 事务标识符低字节
+            (byte)(transactionId >> 8),    // 00 事务标识符高字节（可随机）
+            (byte)(transactionId & 0xFF),  // 01 事务标识符低字节
             0x00,                          // 02 协议标识符高字节（Modbus固定0）
             0x00,                          // 03 协议标识符低字节
             0x00,                          // 04 长度高字节（后续字节数）
