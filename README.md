@@ -122,14 +122,14 @@ await client.WriteMultipleRegistersAsync(1, 0, new ushort[] { 1234, 5678 });
 
 ## 🔧 Supported Modbus Function Codes
 
-- **0x01** - Read Coil Status
-- **0x02** - Read Input Status
-- **0x03** - Read Holding Registers
-- **0x04** - Read Input Registers
-- **0x05** - Write Single Coil
-- **0x06** - Write Single Register
-- **0x0F** - Write Multiple Coils
-- **0x10** - Write Multiple Registers
+- **0x01** - Read Coil Status (FC1)
+- **0x02** - Read Input Status (FC2)
+- **0x03** - Read Holding Registers (FC3)
+- **0x04** - Read Input Registers (FC4)
+- **0x05** - Write Single Coil (FC5)
+- **0x06** - Write Single Register (FC6)
+- **0x0F** - Write Multiple Coils (FC15)
+- **0x10** - Write Multiple Registers (FC16)
 
 ## 🚧 Notes
 
