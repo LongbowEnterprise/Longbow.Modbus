@@ -7,16 +7,16 @@ namespace UnitTestModbus;
 public class MockRtuResponse
 {
     public static ReadOnlyMemory<byte> ReadCoilResponse() =>
-        HexConverter.ToBytes("00 00 00 05 01 01 02 05 00", " ");
+        HexConverter.ToBytes("01 01 02 FD 02 78 AD", " ");
 
     public static ReadOnlyMemory<byte> ReadInputsResponse() =>
-        HexConverter.ToBytes("00 00 00 05 01 02 02 00 00", " ");
+        HexConverter.ToBytes("01 02 02 00 00 B9 B8", " ");
 
     public static ReadOnlyMemory<byte> ReadHoldingRegistersResponse() =>
-        HexConverter.ToBytes("00 00 00 17 01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04 00 05", " ");
+        HexConverter.ToBytes("01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04 00 05 90 D2", " ");
 
     public static ReadOnlyMemory<byte> ReadInputRegistersResponse() =>
-        HexConverter.ToBytes("00 00 00 17 01 04 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00", " ");
+        HexConverter.ToBytes("01 04 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 95 81", " ");
 
     public static ReadOnlyMemory<byte> WriteCoilResponse(ReadOnlyMemory<byte> request)
     {
@@ -25,11 +25,11 @@ public class MockRtuResponse
     }
 
     public static ReadOnlyMemory<byte> WriteMultipleCoilsResponse() =>
-        HexConverter.ToBytes("00 00 00 06 01 06 00 00 00 0C", " ");
+        HexConverter.ToBytes("01 06 00 00 00 0C 89 CF", " ");
 
     public static ReadOnlyMemory<byte> WriteRegisterResponse() =>
-        HexConverter.ToBytes("00 00 00 06 01 0F 00 00 00 0A", " ");
+        HexConverter.ToBytes("01 0F 00 00 00 0A D5 CC", " ");
 
     public static ReadOnlyMemory<byte> WriteMultipleRegistersResponse() =>
-        HexConverter.ToBytes("00 00 00 06 01 10 00 00 00 0A", " ");
+        HexConverter.ToBytes("01 10 00 00 00 0A 40 0E", " ");
 }
