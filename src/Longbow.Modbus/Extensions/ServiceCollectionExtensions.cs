@@ -11,14 +11,14 @@ namespace Microsoft.Extensions.DependencyInjection;
 /// <summary>
 /// IModbusFactory 扩展方法
 /// </summary>
-[UnsupportedOSPlatform("browser")]
-public static class ModbusExtensions
+public static class ServiceCollectionExtensions
 {
     /// <summary>
     /// 增加 <see cref="IModbusFactory"/> 服务
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
+    [UnsupportedOSPlatform("browser")]
     public static IServiceCollection AddModbusFactory(this IServiceCollection services)
     {
         // 添加 IModbusFactory 服务
@@ -27,6 +27,12 @@ public static class ModbusExtensions
         // 添加解析器服务
         services.TryAddTransient<IModbusTcpMessageBuilder, DefaultTcpMessageBuilder>();
         services.TryAddTransient<IModbusRtuMessageBuilder, DefaultRtuMessageBuilder>();
+
+        // 添加 SerialPort 服务
+        services.AddSerialPortFactory();
+
+        // 添加 TcpSocket 服务
+        services.AddTcpSocketFactory();
 
         return services;
     }
