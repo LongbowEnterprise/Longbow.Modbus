@@ -7,6 +7,7 @@
   <PropertyGroup>
     <PackageTags>Longbow Modbus</PackageTags>
     <Description>Longbow extensions of Modbus</Description>
+    <DocumentationFile>$(MSBuildProjectName).xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>
