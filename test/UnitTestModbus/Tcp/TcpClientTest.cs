@@ -14,7 +14,6 @@ public class TcpClientTest
     public async Task Connect_Exception()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -33,7 +32,6 @@ public class TcpClientTest
     public async Task ReadCoilsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -60,7 +58,6 @@ public class TcpClientTest
     public async Task ReadInputsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -78,7 +75,6 @@ public class TcpClientTest
     public async Task ReadHoldingRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -96,7 +92,6 @@ public class TcpClientTest
     public async Task ReadInputRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -114,7 +109,6 @@ public class TcpClientTest
     public async Task WriteCoilAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -134,7 +128,6 @@ public class TcpClientTest
     public async Task WriteMultipleCoilsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -151,7 +144,6 @@ public class TcpClientTest
     public async Task WriteRegisterAsync()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -168,7 +160,6 @@ public class TcpClientTest
     public async Task WriteMultipleRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -185,7 +176,6 @@ public class TcpClientTest
     public async Task ThreadSafe_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
