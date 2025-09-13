@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
+using Longbow.SerialPorts;
 using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Concurrent;
 
@@ -53,26 +54,21 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         return client;
     }
 
-    public IModbusRtuClient GetOrCreateRtuMaster(string? name = null, Action<ModbusRtuClientOptions>? valueFactory = null)
+    public IModbusRtuClient GetOrCreateRtuMaster(string? name = null, Action<ModbusRtuClientOptions>? valueFactory = null) => string.IsNullOrEmpty(name)
+        ? CreateRtuClient(valueFactory)
+        : _rtuPool.GetOrAdd(name, key => CreateRtuClient(valueFactory));
+
+
+    private DefaultRtuClient CreateRtuClient(Action<ModbusRtuClientOptions>? valueFactory = null)
     {
+        var factory = provider.GetRequiredService<ISerialPortFactory>();
+
+        var options = new ModbusRtuClientOptions();
+        valueFactory?.Invoke(options);
+
+        var client = factory.GetOrCreate(valueFactory: options.ToSerialPortOptions);
         var builder = provider.GetRequiredService<IModbusRtuMessageBuilder>();
-
-        if (string.IsNullOrEmpty(name))
-        {
-            var options = new ModbusRtuClientOptions();
-            return new DefaultRtuClient(options, builder);
-        }
-
-        if (_rtuPool.TryGetValue(name, out var client))
-        {
-            return client;
-        }
-
-        var op = new ModbusRtuClientOptions();
-        valueFactory?.Invoke(op);
-        client = new DefaultRtuClient(op, builder);
-        _rtuPool.TryAdd(name, client);
-        return client;
+        return new DefaultRtuClient(client, builder);
     }
 
     public IModbusRtuClient? RemoveRtuMaster(string name)
