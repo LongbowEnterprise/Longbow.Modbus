@@ -23,6 +23,11 @@ public class ModbusTcpClientOptions : ModbusClientOptions
     public IPEndPoint LocalEndPoint { get; set; } = new(IPAddress.Any, 0);
 
     /// <summary>
+    /// 获得/设置 接收缓冲区大小 默认 1024
+    /// </summary>
+    public int ReceiveBufferSize { get; set; } = 1024;
+
+    /// <summary>
     /// Gets or sets a value indicating whether the Nagle algorithm is disabled for the socket connection. Default value is true.
     /// </summary>
     public bool NoDelay { get; set; } = true;
