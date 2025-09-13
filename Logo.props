@@ -1,12 +1,12 @@
 <Project>
 
   <PropertyGroup>
-    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <!--<PackageReadmeFile>readme.md</PackageReadmeFile>-->
     <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
-    <None Include="readme.md" Pack="true" PackagePath="" />
+    <!--<None Include="readme.md" Pack="true" PackagePath="" />-->
   </ItemGroup>
 
   <PropertyGroup>
