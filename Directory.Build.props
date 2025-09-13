@@ -1,6 +1,6 @@
 <Project>
 
-  <!--<Import Project=".\Logo.props" />-->
+  <Import Project=".\Logo.props" />
   <Import Project=".\SourceLink.targets" />
 
   <PropertyGroup>
@@ -14,8 +14,12 @@
   </PropertyGroup>
 
   <PropertyGroup>
+    <IsPackable>true</IsPackable>
     <RepositoryType>github</RepositoryType>
+    <RepositoryUrl>https://github.com/LongbowEnterprise/Longbow.Modbus?wt.mc_id=DT-MVP-5004174</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/LongbowEnterprise/Longbow.Modbus?wt.mc_id=DT-MVP-5004174</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <DocumentationFile>$(MSBuildProjectName).xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>
