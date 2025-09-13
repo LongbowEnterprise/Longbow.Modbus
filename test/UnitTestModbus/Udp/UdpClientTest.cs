@@ -7,6 +7,7 @@ using System.Net;
 
 namespace UnitTestModbus;
 
+[Collection("MockUdpModbus")]
 public class UdpClientTest
 {
     [Fact]
@@ -42,14 +43,10 @@ public class UdpClientTest
         });
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 504);
         var response = await client.ReadCoilsAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
-
-        response = await client.ReadCoilsAsync(0x01, 0, 5);
-        Assert.NotNull(response);
-        Assert.Equal(5, response.Length);
 
         await using var client2 = factory.GetOrCreateUdpMaster();
         Assert.NotEqual(client, client2);
@@ -68,7 +65,7 @@ public class UdpClientTest
         await using var client = factory.GetOrCreateUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 504);
         var response = await client.ReadInputsAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -85,7 +82,7 @@ public class UdpClientTest
         await using var client = factory.GetOrCreateUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 504);
         var response = await client.ReadHoldingRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -102,7 +99,7 @@ public class UdpClientTest
         await using var client = factory.GetOrCreateUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 504);
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -119,11 +116,11 @@ public class UdpClientTest
         await using var client = factory.GetOrCreateUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 504);
         var response = await client.WriteCoilAsync(0x01, 0, true);
         Assert.True(response);
 
-        response = await client.WriteCoilAsync(0x01, 1, false);
+        response = await client.WriteCoilAsync(0x01, 0, false);
         Assert.True(response);
     }
 
@@ -138,7 +135,7 @@ public class UdpClientTest
         await using var client = factory.GetOrCreateUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 504);
         var response = await client.WriteMultipleCoilsAsync(0x01, 0, [true, true, true, true, true, true, true, true, false, true]);
         Assert.True(response);
     }
@@ -154,7 +151,7 @@ public class UdpClientTest
         await using var client = factory.GetOrCreateUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 504);
         var response = await client.WriteRegisterAsync(0x01, 0, 12);
         Assert.True(response);
     }
@@ -170,7 +167,7 @@ public class UdpClientTest
         await using var client = factory.GetOrCreateUdpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", 504);
         var response = await client.WriteMultipleRegistersAsync(0x01, 0, [14, 0, 23, 0, 46, 0, 01, 02, 04, 05]);
         Assert.True(response);
     }

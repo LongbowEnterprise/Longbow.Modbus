@@ -10,13 +10,6 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <IsPackable>true</IsPackable>
-    <RepositoryUrl>https://github.com/LongbowEnterprise/Longbow.Modbus?wt.mc_id=DT-MVP-5004174</RepositoryUrl>
-    <PackageProjectUrl>https://github.com/LongbowEnterprise/Longbow.Modbus?wt.mc_id=DT-MVP-5004174</PackageProjectUrl>
-    <DocumentationFile>$(MSBuildProjectName).xml</DocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <PackageReadmeFile>readme.md</PackageReadmeFile>
     <PackageReleaseNotes></PackageReleaseNotes>
   </PropertyGroup>
@@ -52,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Longbow.SerialPorts" Version="9.0.0" />
     <PackageReference Include="Longbow.Socket" Version="9.*" />
     <PackageReference Include="Longbow.TcpSocket" Version="9.*" />
   </ItemGroup>

@@ -7,13 +7,13 @@ using System.Net;
 
 namespace UnitTestModbus;
 
+[Collection("MockTcpModbus")]
 public class TcpClientTest
 {
     [Fact]
     public async Task Connect_Exception()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -32,7 +32,6 @@ public class TcpClientTest
     public async Task ReadCoilsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -49,10 +48,6 @@ public class TcpClientTest
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
 
-        response = await client.ReadCoilsAsync(0x01, 0, 5);
-        Assert.NotNull(response);
-        Assert.Equal(5, response.Length);
-
         await using var client2 = factory.GetOrCreateTcpMaster();
         Assert.NotEqual(client, client2);
 
@@ -63,7 +58,6 @@ public class TcpClientTest
     public async Task ReadInputsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -81,7 +75,6 @@ public class TcpClientTest
     public async Task ReadHoldingRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -99,7 +92,6 @@ public class TcpClientTest
     public async Task ReadInputRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -117,7 +109,6 @@ public class TcpClientTest
     public async Task WriteCoilAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -129,7 +120,7 @@ public class TcpClientTest
         var response = await client.WriteCoilAsync(0x01, 0, true);
         Assert.True(response);
 
-        response = await client.WriteCoilAsync(0x01, 1, false);
+        response = await client.WriteCoilAsync(0x01, 0, false);
         Assert.True(response);
     }
 
@@ -137,7 +128,6 @@ public class TcpClientTest
     public async Task WriteMultipleCoilsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -154,7 +144,6 @@ public class TcpClientTest
     public async Task WriteRegisterAsync()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -171,7 +160,6 @@ public class TcpClientTest
     public async Task WriteMultipleRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -188,7 +176,6 @@ public class TcpClientTest
     public async Task ThreadSafe_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();

@@ -1,0 +1,129 @@
+﻿// Copyright (c) Argo Zhang (argo@live.ca). All rights reserved.
+// Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
+// Website: https://github.com/LongbowExtensions/
+
+using System.Net;
+using System.Net.Sockets;
+
+namespace UnitTestModbus;
+
+internal static class MockTcpModbus
+{
+    private static TcpListener? _listenser;
+
+    public static TcpListener Start()
+    {
+        _listenser = new TcpListener(IPAddress.Loopback, 502);
+        _listenser.Start();
+        Task.Run(() => AcceptClientsAsync(_listenser));
+        return _listenser;
+    }
+
+    public static void Stop()
+    {
+        _listenser?.Stop();
+        _listenser?.Dispose();
+        _listenser = null;
+    }
+
+    private static async Task AcceptClientsAsync(TcpListener server)
+    {
+        while (true)
+        {
+            var client = await server.AcceptTcpClientAsync();
+            _ = Task.Run(() => MockAsync(client));
+        }
+    }
+
+    private static async Task MockAsync(TcpClient client)
+    {
+        using var stream = client.GetStream();
+        while (true)
+        {
+            var buffer = new byte[1024];
+            var len = await stream.ReadAsync(buffer);
+            if (len == 0)
+            {
+                client.Close();
+                break;
+            }
+
+            if (len >= 12)
+            {
+                var request = buffer[0..12];
+                if (request[7] == 0x01)
+                {
+                    // ReadCoilAsync
+                    await stream.WriteAsync(MockTcpResponse.ReadCoilResponse(request), CancellationToken.None);
+                }
+                else if (request[7] == 0x02)
+                {
+                    // ReadInputsAsync
+                    await stream.WriteAsync(MockTcpResponse.ReadInputsResponse(request), CancellationToken.None);
+                }
+                else if (request[7] == 0x03)
+                {
+                    // ReadHoldingRegistersAsync
+                    await stream.WriteAsync(MockTcpResponse.ReadHoldingRegistersResponse(request), CancellationToken.None);
+                }
+                else if (request[7] == 0x04)
+                {
+                    // ReadInputRegistersAsync
+                    await stream.WriteAsync(MockTcpResponse.ReadInputRegistersResponse(request), CancellationToken.None);
+                }
+                else if (request[7] == 0x05)
+                {
+                    // WriteCoilAsync
+                    await stream.WriteAsync(MockTcpResponse.WriteCoilResponse(request), CancellationToken.None);
+                }
+                else if (request[7] == 0x06)
+                {
+                    // WriteMultipleCoilsAsync
+                    await stream.WriteAsync(MockTcpResponse.WriteMultipleCoilsResponse(request), CancellationToken.None);
+                }
+                else if (request[7] == 0x0F)
+                {
+                    // WriteRegisterAsync
+                    await stream.WriteAsync(MockTcpResponse.WriteRegisterResponse(request), CancellationToken.None);
+                }
+                else if (request[7] == 0x10)
+                {
+                    // WriteMultipleRegistersAsync
+                    await stream.WriteAsync(MockTcpResponse.WriteMultipleRegistersResponse(request), CancellationToken.None);
+                }
+            }
+        }
+    }
+
+    private static ReadOnlyMemory<byte> GenerateResponse(ReadOnlyMemory<byte> request, string data)
+    {
+        var buffer = HexConverter.ToBytes(data, " ");
+
+        var response = new byte[buffer.Length + 2];
+        response[0] = request.Span[0];
+        response[1] = request.Span[1];
+        buffer.CopyTo(response.AsSpan(2));
+
+        return response;
+    }
+}
+
+class TcpModbusFixture : IDisposable
+{
+    public TcpModbusFixture()
+    {
+        MockTcpModbus.Start();
+    }
+
+    public void Dispose()
+    {
+        MockTcpModbus.Stop();
+        GC.SuppressFinalize(this);
+    }
+}
+
+[CollectionDefinition("MockTcpModbus")]
+public class TcpModbusCollection : ICollectionFixture<TcpModbusFixture>
+{
+
+}
