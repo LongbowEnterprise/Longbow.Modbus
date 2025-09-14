@@ -3,7 +3,6 @@
 // Website: https://github.com/LongbowExtensions/
 
 using System.Buffers;
-using System.IO;
 using System.Net;
 using System.Net.Sockets;
 

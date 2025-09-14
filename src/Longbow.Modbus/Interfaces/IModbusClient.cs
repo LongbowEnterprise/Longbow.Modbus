@@ -2,14 +2,11 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
-using System.Runtime.Versioning;
-
 namespace Longbow.Modbus;
 
 /// <summary>
 /// Modbus 客户端接口
 /// </summary>
-[UnsupportedOSPlatform("browser")]
 public interface IModbusClient : IAsyncDisposable
 {
     /// <summary>
