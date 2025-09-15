@@ -9,21 +9,21 @@ namespace UnitTestModbus;
 
 internal static class MockTcpModbus
 {
-    private static TcpListener? _listenser;
+    private static TcpListener? _listener;
 
     public static TcpListener Start()
     {
-        _listenser = new TcpListener(IPAddress.Loopback, 502);
-        _listenser.Start();
-        Task.Run(() => AcceptClientsAsync(_listenser));
-        return _listenser;
+        _listener = new TcpListener(IPAddress.Loopback, 502);
+        _listener.Start();
+        Task.Run(() => AcceptClientsAsync(_listener));
+        return _listener;
     }
 
     public static void Stop()
     {
-        _listenser?.Stop();
-        _listenser?.Dispose();
-        _listenser = null;
+        _listener?.Stop();
+        _listener?.Dispose();
+        _listener = null;
     }
 
     private static async Task AcceptClientsAsync(TcpListener server)
