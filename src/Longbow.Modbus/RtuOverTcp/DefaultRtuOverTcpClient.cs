@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
+using System.Buffers;
 using System.Net;
 
 namespace Longbow.Modbus;
@@ -15,8 +16,10 @@ class DefaultRtuOverTcpClient(ITcpSocketClient client, IModbusRtuMessageBuilder 
         client.ThrowIfNotConnected();
 
         await client.SendAsync(request, token);
-        var received = await client.ReceiveAsync(token);
-        return received;
+
+        using var buffer = MemoryPool<byte>.Shared.Rent(client.Options.ReceiveBufferSize);
+        var len = await client.ReceiveAsync(buffer.Memory, token);
+        return buffer.Memory[0..len];
     }
 
     /// <summary>
