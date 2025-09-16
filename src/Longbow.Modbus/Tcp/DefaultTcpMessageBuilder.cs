@@ -26,7 +26,7 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
     {
         var transactionId = GetTransactionId();
 
-        var request = ArrayPool<byte>.Shared.Rent(12);
+        var request = new byte[12];
 
         // MBAP头（7字节）
         request[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
@@ -44,10 +44,7 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         request[10] = (byte)(numberOfPoints >> 8);  // 10 寄存器数量高字节
         request[11] = (byte)(numberOfPoints & 0xFF);// 11 寄存器数量低字节
 
-        var buffer = request.AsMemory(0, 12).ToArray();
-        ArrayPool<byte>.Shared.Return(request);
-
-        return buffer;
+        return request;
     }
 
     /// <summary>
@@ -62,7 +59,7 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         var transactionId = GetTransactionId();
 
         var len = 8 + data.Length;
-        var request = ArrayPool<byte>.Shared.Rent(len);
+        var request = new byte[len];
 
         // MBAP头（7字节）
         request[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
@@ -78,10 +75,8 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
 
         // 写入数据部分
         data.CopyTo(request.AsMemory(8..));
-        var buffer = request.AsMemory(0, len).ToArray();
-        ArrayPool<byte>.Shared.Return(request);
 
-        return buffer;
+        return request;
     }
 
     private uint GetTransactionId()
