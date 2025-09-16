@@ -148,10 +148,8 @@ This project is licensed under the [Apache License](LICENSE). See the `LICENSE` 
 
 ## 🔗 Related Links
 
-- [Gitee Project Homepage](https://gitee.com/LongbowEnterprise/Longbow.Modbus)
-- [GitHub Project Homepage](https://github.com/LongbowEnterprise/Longbow.Modbus)
-- [NuGet Package](https://www.nuget.org/packages/Longbow.Modbus)
+- [GitHub Project Homepage](https://github.com/LongbowEnterprise/Longbow.Modbus?wt.mc_id=DT-MVP-5004174)
 
 ## 📞 Contact
 
-To contact the developers, visit the project homepage or submit issues to [Gitee Issues](https://gitee.com/LongbowEnterprise/Longbow.Modbus/issues) or [GitHub Issues](https://github.com/LongbowEnterprise/Longbow.Modbus/issues).
+To contact the developers, visit the project homepage or submit issues to [GitHub Issues](https://github.com/LongbowEnterprise/Longbow.Modbus/issues?wt.mc_id=DT-MVP-5004174).

@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
+using System.Buffers;
+
 namespace Longbow.Modbus;
 
 /// <summary>
@@ -23,26 +25,26 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
     public ReadOnlyMemory<byte> BuildReadRequest(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
     {
         var transactionId = GetTransactionId();
-        Span<byte> request = stackalloc byte[]
-        {
-            // MBAP头（7字节）
-            (byte)(transactionId >> 8),    // 00 事务标识符高字节（可随机）
-            (byte)(transactionId & 0xFF),  // 01 事务标识符低字节
-            0x00,                          // 02 协议标识符高字节（Modbus固定0）
-            0x00,                          // 03 协议标识符低字节
-            0x00,                          // 04 长度高字节（后续字节数）
-            0x06,                          // 05 长度低字节（6字节PDU）
+        using var request = MemoryPool<byte>.Shared.Rent(12);
+        var span = request.Memory.Span;
 
-            // PDU部分
-            slaveAddress,                  // 06 从站地址
-            functionCode,                  // 07 功能码
-            (byte)(startAddress >> 8),     // 08 起始地址高字节
-            (byte)(startAddress & 0xFF),   // 09 起始地址低字节
-            (byte)(numberOfPoints >> 8),   // 10 寄存器数量高字节
-            (byte)(numberOfPoints & 0xFF), // 11 寄存器数量低字节
-        };
+        // MBAP头（7字节）
+        span[0] = (byte)(transactionId >> 8);     // 00 事务标识符高字节（可随机）
+        span[1] = (byte)(transactionId & 0xFF);   // 01 事务标识符低字节
+        span[2] = 0x00;                           // 02 协议标识符高字节（Modbus固定0）
+        span[3] = 0x00;                           // 03 协议标识符低字节
+        span[4] = 0x00;                           // 04 长度高字节（后续字节数）
+        span[5] = 0x06;                           // 05 长度低字节（6字节PDU）
 
-        return request.ToArray();
+        // PDU部分
+        span[6] = slaveAddress;                   // 06 从站地址
+        span[7] = functionCode;                   // 07 功能码
+        span[8] = (byte)(startAddress >> 8);      // 08 起始地址高字节
+        span[9] = (byte)(startAddress & 0xFF);    // 09 起始地址低字节
+        span[10] = (byte)(numberOfPoints >> 8);   // 10 寄存器数量高字节
+        span[11] = (byte)(numberOfPoints & 0xFF); // 11 寄存器数量低字节
+
+        return request.Memory[0..12];
     }
 
     /// <summary>
@@ -55,25 +57,26 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
     public ReadOnlyMemory<byte> BuildWriteRequest(byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
     {
         var transactionId = GetTransactionId();
-
-        Span<byte> request = stackalloc byte[8 + data.Length];
+        var len = 8 + data.Length;
+        using var request = MemoryPool<byte>.Shared.Rent(len);
+        var span = request.Memory.Span;
 
         // MBAP头（7字节）
-        request[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
-        request[1] = (byte)(transactionId & 0xFF);  // 01 事务标识符低字节
-        request[2] = 0x00;                          // 02 协议标识符高字节（Modbus固定0）
-        request[3] = 0x00;                          // 03 协议标识符低字节
-        request[4] = 0x00;                          // 04 长度高字节（后续字节数）
-        request[5] = (byte)(2 + data.Length);       // 05 长度低字节（PDU数据）
+        span[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
+        span[1] = (byte)(transactionId & 0xFF);  // 01 事务标识符低字节
+        span[2] = 0x00;                          // 02 协议标识符高字节（Modbus固定0）
+        span[3] = 0x00;                          // 03 协议标识符低字节
+        span[4] = 0x00;                          // 04 长度高字节（后续字节数）
+        span[5] = (byte)(2 + data.Length);       // 05 长度低字节（PDU数据）
 
         // PDU部分
-        request[6] = slaveAddress;                  // 06 从站地址
-        request[7] = functionCode;                  // 07 功能码
+        span[6] = slaveAddress;                  // 06 从站地址
+        span[7] = functionCode;                  // 07 功能码
 
         // 写入数据部分
-        data.Span.CopyTo(request[8..]);
+        data.Span.CopyTo(span[8..]);
 
-        return request.ToArray();
+        return request.Memory[00..len];
     }
 
     private uint GetTransactionId()
@@ -216,44 +219,36 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
 
     public ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
     {
-        try
+        var values = new ushort[numberOfPoints];
+        if (response.Length >= 9 + numberOfPoints * 2)
         {
-            var values = new ushort[numberOfPoints];
-            if (response.Length != 0)
+            for (var i = 0; i < numberOfPoints; i++)
             {
-                for (var i = 0; i < numberOfPoints; i++)
-                {
-                    int offset = 9 + (i * 2);
-                    values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
-                }
+                int offset = 9 + (i * 2);
+                values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
             }
+        }
 
-            return values;
-        }
-        catch (Exception ex)
-        {
-            using var fs = new StreamWriter(File.OpenWrite("c:\\log\\log.txt"));
-            fs.WriteLine($"response: {BitConverter.ToString(response.ToArray())} numberOfPoints {numberOfPoints}");
-            fs.Close();
-            throw new Exception("Failed to parse ushort values 解析 ushort 值失败", ex);
-        }
+        return values;
     }
 
     public ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
     {
         int byteCount = (values.Length + 7) / 8;
-        Span<byte> data = stackalloc byte[values.Length > 1 ? 5 + byteCount : 4];
-        data[0] = (byte)(address >> 8);
-        data[1] = (byte)address;
+        var len = values.Length > 1 ? 5 + byteCount : 4;
+        var buffer = MemoryPool<byte>.Shared.Rent(len);
+        var span = buffer.Memory.Span;
+        span[0] = (byte)(address >> 8);
+        span[1] = (byte)address;
 
         if (values.Length > 1)
         {
             // 多值时，写入数量
-            data[2] = (byte)(values.Length >> 8);
-            data[3] = (byte)(values.Length);
+            span[2] = (byte)(values.Length >> 8);
+            span[3] = (byte)(values.Length);
 
             // 字节数
-            data[4] = (byte)(byteCount);
+            span[4] = (byte)(byteCount);
 
             for (var i = 0; i < values.Length; i++)
             {
@@ -261,48 +256,50 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
                 {
                     int byteIndex = 5 + i / 8;
                     int bitIndex = i % 8;
-                    data[byteIndex] |= (byte)(1 << bitIndex);
+                    span[byteIndex] |= (byte)(1 << bitIndex);
                 }
             }
         }
         else
         {
             // 组装数据
-            data[2] = values[0] ? (byte)0xFF : (byte)0x00;
-            data[3] = 0x00;
+            span[2] = values[0] ? (byte)0xFF : (byte)0x00;
+            span[3] = 0x00;
         }
 
-        return data.ToArray();
+        return buffer.Memory[0..len];
     }
 
     public ReadOnlyMemory<byte> WriteUShortValues(ushort address, ushort[] values)
     {
         int byteCount = values.Length * 2;
-        Span<byte> data = stackalloc byte[values.Length > 1 ? 5 + byteCount : 4];
-        data[0] = (byte)(address >> 8);
-        data[1] = (byte)address;
+        var len = values.Length > 1 ? 5 + byteCount : 4;
+        var buffer = MemoryPool<byte>.Shared.Rent(len);
+        var span = buffer.Memory.Span;
+        span[0] = (byte)(address >> 8);
+        span[1] = (byte)address;
 
         if (values.Length > 1)
         {
             // 多值时，写入数量
-            data[2] = (byte)(values.Length >> 8);
-            data[3] = (byte)(values.Length);
+            span[2] = (byte)(values.Length >> 8);
+            span[3] = (byte)(values.Length);
 
             // 字节数
-            data[4] = (byte)(byteCount);
+            span[4] = (byte)(byteCount);
 
             for (var i = 0; i < values.Length; i++)
             {
-                data[i * 2 + 5] = (byte)(values[i] >> 8);
-                data[i * 2 + 6] = (byte)(values[i] & 0xFF);
+                span[i * 2 + 5] = (byte)(values[i] >> 8);
+                span[i * 2 + 6] = (byte)(values[i] & 0xFF);
             }
         }
         else
         {
-            data[2] = (byte)(values[0] >> 8);
-            data[3] = (byte)(values[0] & 0xFF);
+            span[2] = (byte)(values[0] >> 8);
+            span[3] = (byte)(values[0] & 0xFF);
         }
 
-        return data.ToArray();
+        return buffer.Memory[0..len];
     }
 }

@@ -7,6 +7,7 @@
   <PropertyGroup>
     <PackageTags>Longbow Modbus</PackageTags>
     <Description>Longbow extensions of Modbus</Description>
+    <DocumentationFile>$(MSBuildProjectName).xml</DocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -20,32 +21,10 @@
 
   <PropertyGroup>
     <TargetFrameworks>net6.0;net7.0;net8.0;net9.0</TargetFrameworks>
-    <NET8Version>8.0.*</NET8Version>
-    <NET9Version>9.0.*</NET9Version>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(NET8Version)" />
-    <PackageReference Include="System.IO.Ports" Version="$(NET8Version)" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(NET8Version)" />
-    <PackageReference Include="System.IO.Ports" Version="$(NET8Version)" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(NET9Version)" />
-    <PackageReference Include="System.IO.Ports" Version="$(NET9Version)" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net9.0'">
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="$(NET9Version)" />
-    <PackageReference Include="System.IO.Ports" Version="$(NET9Version)" />
-  </ItemGroup>
-
   <ItemGroup>
-    <PackageReference Include="Longbow.SerialPorts" Version="9.0.0" />
+    <PackageReference Include="Longbow.SerialPorts" Version="9.0.1" />
     <PackageReference Include="Longbow.Socket" Version="9.*" />
     <PackageReference Include="Longbow.TcpSocket" Version="9.*" />
   </ItemGroup>
@@ -54,7 +33,6 @@
     <Using Include="Longbow.Sockets.DataAdapters" />
     <Using Include="Longbow.Sockets.DataHandlers" />
     <Using Include="Longbow.Sockets.DataConverters" />
-    <Using Include="Longbow.Sockets.Logging" />
     <Using Include="Longbow.TcpSocket" />
   </ItemGroup>
 

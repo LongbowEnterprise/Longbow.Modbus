@@ -10,7 +10,6 @@ namespace Longbow.Modbus;
 /// <summary>
 /// Modbus TcpClient 客户端接口
 /// </summary>
-[UnsupportedOSPlatform("browser")]
 public interface IModbusTcpClient : IModbusClient
 {
     /// <summary>
