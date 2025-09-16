@@ -19,7 +19,8 @@ public class Benchmarks
     private readonly List<NModbus.IModbusMaster> _nModbusClients = [];
     private readonly List<ModbusTcpMaster> _touchSocketModbusClients = [];
 
-    private const int TaskNumberOfItems = 30;
+    private const int NumberOfTask = 30;
+    private const int TaskNumberOfClient = 30;
     private const int ClientCount = 10;
 
     public Benchmarks()
@@ -34,7 +35,7 @@ public class Benchmarks
             var client = new TouchSocket.Modbus.ModbusTcpMaster();
             await client.SetupAsync(new TouchSocket.Core.TouchSocketConfig().SetRemoteIPHost("127.0.0.1:502"));
             await client.ConnectAsync();
-            await client.ReadHoldingRegistersAsync(0x01, 0x00, 10);
+            await client.ReadHoldingRegistersAsync(0x01, 0x00, 100);
             _touchSocketModbusClients.Add(client);
         }
     }
@@ -46,7 +47,7 @@ public class Benchmarks
         for (var index = 0; index < ClientCount; index++)
         {
             var client = nModbusFactory.CreateMaster(new System.Net.Sockets.TcpClient("127.0.0.1", 502));
-            await client.ReadHoldingRegistersAsync(0x01, 0x00, 10);
+            await client.ReadHoldingRegistersAsync(0x01, 0x00, 100);
 
             _nModbusClients.Add(client);
         }
@@ -55,7 +56,6 @@ public class Benchmarks
     private async Task InitLongbowModbus()
     {
         var sc = new ServiceCollection();
-        sc.AddTcpSocketFactory();
         sc.AddModbusFactory();
 
         var provider = sc.BuildServiceProvider();
@@ -65,7 +65,7 @@ public class Benchmarks
         {
             var client = factory.GetOrCreateTcpMaster();
             await client.ConnectAsync("127.0.0.1", 502);
-            await client.ReadHoldingRegistersAsync(0x01, 0x00, 10);
+            await client.ReadHoldingRegistersAsync(0x01, 0x00, 100);
 
             _lgbModbusClients.Add(client);
         }
@@ -77,10 +77,15 @@ public class Benchmarks
         var tasks = _lgbModbusClients.SelectMany(c =>
         {
             var tasks = new List<Task>();
-            for (int i = 0; i < TaskNumberOfItems; i++)
+            for (int i = 0; i < TaskNumberOfClient; i++)
             {
-                var task = c.ReadHoldingRegistersAsync(1, 0, 10);
-                tasks.Add(task.AsTask());
+                tasks.Add(Task.Run(async () =>
+                {
+                    for (int i = 0; i < NumberOfTask; i++)
+                    {
+                        var d = await c.ReadHoldingRegistersAsync(1, 0, 100);
+                    }
+                }));
             }
             return tasks;
         }).ToList();
@@ -88,15 +93,15 @@ public class Benchmarks
         await Task.WhenAll(tasks);
     }
 
-    [Benchmark]
+    //[Benchmark]
     public async Task NModbus()
     {
         var tasks = _nModbusClients.SelectMany(c =>
         {
             var tasks = new List<Task>();
-            for (int i = 0; i < TaskNumberOfItems; i++)
+            for (int i = 0; i < TaskNumberOfClient; i++)
             {
-                var task = c.ReadHoldingRegistersAsync(1, 0, 10);
+                var task = c.ReadHoldingRegistersAsync(1, 0, 100);
                 tasks.Add(task);
             }
             return tasks;
@@ -105,20 +110,22 @@ public class Benchmarks
         await Task.WhenAll(tasks);
     }
 
-
     [Benchmark]
     public async Task TouchSocketModbus()
     {
         var tasks = _touchSocketModbusClients.SelectMany(c =>
         {
             var tasks = new List<Task>();
-            for (int i = 0; i < TaskNumberOfItems; i++)
+            for (int i = 0; i < TaskNumberOfClient; i++)
             {
                 var task = Task.Run(async () =>
                 {
-                    var response = await c.ReadHoldingRegistersAsync(1, 0, 10);
-                    var v = response.Data.ToArray();
-                    var data = new ushort[10];
+                    for (int i = 0; i < NumberOfTask; i++)
+                    {
+                        var response = await c.ReadHoldingRegistersAsync(1, 0, 100);
+                        var byteData = response.Data;
+                        
+                    }
                 });
                 tasks.Add(task);
             }
