@@ -2,6 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
+using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
@@ -38,9 +39,10 @@ internal static class MockTcpModbus
     private static async Task MockAsync(TcpClient client)
     {
         using var stream = client.GetStream();
+        using var memory = MemoryPool<byte>.Shared.Rent(256);
+        var buffer = memory.Memory;
         while (true)
         {
-            var buffer = new byte[1024];
             var len = await stream.ReadAsync(buffer);
             if (len == 0)
             {
@@ -51,42 +53,43 @@ internal static class MockTcpModbus
             if (len >= 12)
             {
                 var request = buffer[0..12];
-                if (request[7] == 0x01)
+                var functionCode = request.Span[7];
+                if (functionCode == 0x01)
                 {
                     // ReadCoilAsync
                     await stream.WriteAsync(MockTcpResponse.ReadCoilResponse(request), CancellationToken.None);
                 }
-                else if (request[7] == 0x02)
+                else if (functionCode == 0x02)
                 {
                     // ReadInputsAsync
                     await stream.WriteAsync(MockTcpResponse.ReadInputsResponse(request), CancellationToken.None);
                 }
-                else if (request[7] == 0x03)
+                else if (functionCode == 0x03)
                 {
                     // ReadHoldingRegistersAsync
                     await stream.WriteAsync(MockTcpResponse.ReadHoldingRegistersResponse(request), CancellationToken.None);
                 }
-                else if (request[7] == 0x04)
+                else if (functionCode == 0x04)
                 {
                     // ReadInputRegistersAsync
                     await stream.WriteAsync(MockTcpResponse.ReadInputRegistersResponse(request), CancellationToken.None);
                 }
-                else if (request[7] == 0x05)
+                else if (functionCode == 0x05)
                 {
                     // WriteCoilAsync
                     await stream.WriteAsync(MockTcpResponse.WriteCoilResponse(request), CancellationToken.None);
                 }
-                else if (request[7] == 0x06)
+                else if (functionCode == 0x06)
                 {
                     // WriteMultipleCoilsAsync
                     await stream.WriteAsync(MockTcpResponse.WriteMultipleCoilsResponse(request), CancellationToken.None);
                 }
-                else if (request[7] == 0x0F)
+                else if (functionCode == 0x0F)
                 {
                     // WriteRegisterAsync
                     await stream.WriteAsync(MockTcpResponse.WriteRegisterResponse(request), CancellationToken.None);
                 }
-                else if (request[7] == 0x10)
+                else if (functionCode == 0x10)
                 {
                     // WriteMultipleRegistersAsync
                     await stream.WriteAsync(MockTcpResponse.WriteMultipleRegistersResponse(request), CancellationToken.None);
