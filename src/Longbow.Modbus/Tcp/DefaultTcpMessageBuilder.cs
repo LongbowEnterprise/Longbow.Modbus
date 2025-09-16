@@ -26,26 +26,26 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
     {
         var transactionId = GetTransactionId();
 
-        Span<byte> request = stackalloc byte[]
-        {
-            // MBAP头（7字节）
-            (byte)(transactionId >> 8),    // 00 事务标识符高字节（可随机）
-            (byte)(transactionId & 0xFF),  // 01 事务标识符低字节
-            0x00,                          // 02 协议标识符高字节（Modbus固定0）
-            0x00,                          // 03 协议标识符低字节
-            0x00,                          // 04 长度高字节（后续字节数）
-            0x06,                          // 05 长度低字节（6字节PDU）
+        var buffer = new Memory<byte>(new byte[12]);
+        var request = buffer.Span;
 
-            // PDU部分
-            slaveAddress,                  // 06 从站地址
-            functionCode,                  // 07 功能码
-            (byte)(startAddress >> 8),     // 08 起始地址高字节
-            (byte)(startAddress & 0xFF),   // 09 起始地址低字节
-            (byte)(numberOfPoints >> 8),   // 10 寄存器数量高字节
-            (byte)(numberOfPoints & 0xFF), // 11 寄存器数量低字节
-        };
+        // MBAP头（7字节）
+        request[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
+        request[1] = (byte)(transactionId & 0xFF);  // 01 事务标识符低字节
+        request[2] = 0x00;                          // 02 协议标识符高字节（Modbus固定0）
+        request[3] = 0x00;                          // 03 协议标识符低字节
+        request[4] = 0x00;                          // 04 长度高字节（后续字节数）
+        request[5] = 0x06;                          // 05 长度低字节（6字节PDU）
 
-        return request.ToArray();
+        // PDU部分
+        request[6] = slaveAddress;                  // 06 从站地址
+        request[7] = functionCode;                  // 07 功能码
+        request[8] = (byte)(startAddress >> 8);     // 08 起始地址高字节
+        request[9] = (byte)(startAddress & 0xFF);   // 09 起始地址低字节
+        request[10] = (byte)(numberOfPoints >> 8);  // 10 寄存器数量高字节
+        request[11] = (byte)(numberOfPoints & 0xFF);// 11 寄存器数量低字节
+
+        return buffer;
     }
 
     /// <summary>
@@ -60,7 +60,8 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         var transactionId = GetTransactionId();
 
         var len = 8 + data.Length;
-        Span<byte> request = stackalloc byte[len];
+        var buffer = new Memory<byte>(new byte[len]);
+        var request = buffer.Span;
 
         // MBAP头（7字节）
         request[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
@@ -75,9 +76,9 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         request[7] = functionCode;                  // 07 功能码
 
         // 写入数据部分
-        data.Span.CopyTo(request[8..]);
+        data.CopyTo(buffer[8..]);
 
-        return request.ToArray();
+        return buffer;
     }
 
     private uint GetTransactionId()
