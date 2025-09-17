@@ -19,8 +19,8 @@ public class Benchmarks
     private readonly List<NModbus.IModbusMaster> _nModbusClients = [];
     private readonly List<ModbusTcpMaster> _touchSocketModbusClients = [];
 
-    private const int NumberOfTask = 30;
-    private const int TaskNumberOfClient = 30;
+    private const int NumberOfTask = 10;
+    private const int TaskNumberOfClient = 10;
     private const int ClientCount = 10;
 
     public Benchmarks()
@@ -93,7 +93,7 @@ public class Benchmarks
         await Task.WhenAll(tasks);
     }
 
-    //[Benchmark]
+    [Benchmark]
     public async Task NModbus()
     {
         var tasks = _nModbusClients.SelectMany(c =>
@@ -101,8 +101,13 @@ public class Benchmarks
             var tasks = new List<Task>();
             for (int i = 0; i < TaskNumberOfClient; i++)
             {
-                var task = c.ReadHoldingRegistersAsync(1, 0, 100);
-                tasks.Add(task);
+                tasks.Add(Task.Run(async () =>
+                {
+                    for (int i = 0; i < NumberOfTask; i++)
+                    {
+                        var d = await c.ReadHoldingRegistersAsync(1, 0, 100);
+                    }
+                }));
             }
             return tasks;
         }).ToList();
@@ -124,7 +129,7 @@ public class Benchmarks
                     {
                         var response = await c.ReadHoldingRegistersAsync(1, 0, 100);
                         var byteData = response.Data;
-                        
+
                     }
                 });
                 tasks.Add(task);
