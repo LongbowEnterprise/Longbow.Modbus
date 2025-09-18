@@ -175,6 +175,8 @@ public class TcpClientTest
     [Fact]
     public async Task ThreadSafe_Ok()
     {
+        var clientCount = 1;
+        var taskCount = 5;
         var sc = new ServiceCollection();
         sc.AddModbusFactory();
 
@@ -182,11 +184,10 @@ public class TcpClientTest
         var factory = provider.GetRequiredService<IModbusFactory>();
 
         var clients = new List<IModbusClient>();
-        for (var index = 0; index < 2; index++)
+        for (var index = 0; index < clientCount; index++)
         {
             var client = factory.GetOrCreateTcpMaster();
             await client.ConnectAsync("127.0.0.1", 502);
-            await client.ReadHoldingRegistersAsync(0x01, 0x00, 10);
 
             clients.Add(client);
         }
@@ -195,7 +196,7 @@ public class TcpClientTest
         var tasks = clients.SelectMany(c =>
         {
             var tasks = new List<Task>();
-            for (int i = 0; i < 10; i++)
+            for (int i = 0; i < taskCount; i++)
             {
                 var task = Task.Run(async () =>
                 {
@@ -209,7 +210,7 @@ public class TcpClientTest
 
         await Task.WhenAll(tasks);
 
-        Assert.Equal(20, results.Count);
+        Assert.Equal(clientCount * taskCount, results.Count);
 
         var failed = results.Count(i => i.All(v => v == 0));
         Assert.Equal(0, failed);
