@@ -11,7 +11,7 @@ static class MessageBuilder
         if (numberOfPoints < 1 || numberOfPoints > maxNumberOfPoints)
         {
             string msg = $"Argument {argumentName} must be between 1 and {maxNumberOfPoints} inclusive.";
-            throw new ArgumentException(msg);
+            throw new ArgumentException(msg, argumentName);
         }
     }
 
@@ -22,7 +22,7 @@ static class MessageBuilder
         if (data.Length == 0 || data.Length > maxDataLength)
         {
             string msg = $"The length of argument {argumentName} must be between 1 and {maxDataLength} inclusive.";
-            throw new ArgumentException(msg);
+            throw new ArgumentException(msg, argumentName);
         }
     }
 }
