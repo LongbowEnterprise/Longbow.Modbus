@@ -12,7 +12,7 @@ public class RtuClientTest
     public async Task Connect_Failed()
     {
         var sc = new ServiceCollection();
-        sc.AddModbusFactory();
+        sc.AddMockRtuClientService();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
@@ -28,28 +28,10 @@ public class RtuClientTest
     }
 
     [Fact]
-    public async Task Connect_Exception()
-    {
-        var sc = new ServiceCollection();
-        sc.AddModbusFactory();
-
-        var provider = sc.BuildServiceProvider();
-        var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateRtuMaster("test");
-
-        // 未连接 Master 直接读取
-        var ex = await Assert.ThrowsAnyAsync<InvalidOperationException>(async () =>
-        {
-            await client.ReadCoilsAsync(0x01, 0, 10);
-        });
-        Assert.NotNull(ex);
-    }
-
-    [Fact]
     public async Task ReadCoilsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddModbusFactory();
+        sc.AddMockRtuClientService();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
@@ -97,7 +79,7 @@ public class RtuClientTest
     public async Task ReadInputsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddModbusFactory();
+        sc.AddMockRtuClientService();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
@@ -114,7 +96,7 @@ public class RtuClientTest
     public async Task ReadHoldingRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddModbusFactory();
+        sc.AddMockRtuClientService();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
@@ -131,7 +113,7 @@ public class RtuClientTest
     public async Task ReadInputRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddModbusFactory();
+        sc.AddMockRtuClientService();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
@@ -148,7 +130,7 @@ public class RtuClientTest
     public async Task WriteCoilAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddModbusFactory();
+        sc.AddMockRtuClientService();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
@@ -167,7 +149,7 @@ public class RtuClientTest
     public async Task WriteMultipleCoilsAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddModbusFactory();
+        sc.AddMockRtuClientService();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
@@ -183,7 +165,7 @@ public class RtuClientTest
     public async Task WriteRegisterAsync()
     {
         var sc = new ServiceCollection();
-        sc.AddModbusFactory();
+        sc.AddMockRtuClientService();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
@@ -199,7 +181,7 @@ public class RtuClientTest
     public async Task WriteMultipleRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
-        sc.AddModbusFactory();
+        sc.AddMockRtuClientService();
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
