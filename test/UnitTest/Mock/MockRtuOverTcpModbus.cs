@@ -5,7 +5,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace UnitTestModbus;
+namespace UnitTest;
 
 internal static class MockRtuOverTcpModbus
 {
@@ -111,7 +111,7 @@ class RtuOverTcpModbusFixture : IDisposable
 }
 
 [CollectionDefinition("MockRtuOverTcpModbus")]
-public class RtuModbusCollection : ICollectionFixture<RtuOverTcpModbusFixture>
+public class RtuOverTcpModbusCollection : ICollectionFixture<RtuOverTcpModbusFixture>
 {
 
 }

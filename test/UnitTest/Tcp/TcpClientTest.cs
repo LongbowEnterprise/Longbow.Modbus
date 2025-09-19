@@ -5,10 +5,10 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 
-namespace UnitTestModbus;
+namespace UnitTest;
 
-[Collection("MockUdpModbus")]
-public class UdpClientTest
+[Collection("MockTcpModbus")]
+public class TcpClientTest
 {
     [Fact]
     public async Task Connect_Exception()
@@ -18,7 +18,7 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 未连接 Master 直接读取
         var ex = await Assert.ThrowsAnyAsync<InvalidOperationException>(async () =>
@@ -36,19 +36,19 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test", op =>
+        await using var client = factory.GetOrCreateTcpMaster("test", op =>
         {
             op.ConnectTimeout = 1000;
             op.LocalEndPoint = new(IPAddress.Any, 0);
         });
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 504);
+        await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.ReadCoilsAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
 
-        await using var client2 = factory.GetOrCreateUdpMaster();
+        await using var client2 = factory.GetOrCreateTcpMaster();
         Assert.NotEqual(client, client2);
 
         factory.RemoveTcpMaster("test");
@@ -62,10 +62,10 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 504);
+        await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.ReadInputsAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -79,10 +79,10 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 504);
+        await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.ReadHoldingRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -96,10 +96,10 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 504);
+        await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -113,10 +113,10 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 504);
+        await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.WriteCoilAsync(0x01, 0, true);
         Assert.True(response);
 
@@ -132,10 +132,10 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 504);
+        await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.WriteMultipleCoilsAsync(0x01, 0, [true, true, true, true, true, true, true, true, false, true]);
         Assert.True(response);
     }
@@ -148,10 +148,10 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 504);
+        await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.WriteRegisterAsync(0x01, 0, 12);
         Assert.True(response);
     }
@@ -164,11 +164,55 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 504);
-        var response = await client.WriteMultipleRegistersAsync(0x01, 0, [14, 0, 23, 0, 46, 0, 01, 02, 04, 05]);
+        await client.ConnectAsync("127.0.0.1", 502);
+        var response = await client.WriteMultipleRegistersAsync(0x01, 0, [12, 0, 23, 0, 46, 0, 01, 02, 04, 05]);
         Assert.True(response);
+    }
+
+    [Fact]
+    public async Task ThreadSafe_Ok()
+    {
+        var clientCount = 1;
+        var taskCount = 5;
+        var sc = new ServiceCollection();
+        sc.AddModbusFactory();
+
+        var provider = sc.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IModbusFactory>();
+
+        var clients = new List<IModbusClient>();
+        for (var index = 0; index < clientCount; index++)
+        {
+            var client = factory.GetOrCreateTcpMaster();
+            await client.ConnectAsync("127.0.0.1", 502);
+
+            clients.Add(client);
+        }
+
+        var results = new List<ushort[]>();
+        var tasks = clients.SelectMany(c =>
+        {
+            var tasks = new List<Task>();
+            for (int i = 0; i < taskCount; i++)
+            {
+                var task = Task.Run(async () =>
+                {
+                    var v = await c.ReadHoldingRegistersAsync(1, 0, 10);
+                    results.Add(v);
+                });
+                tasks.Add(task);
+            }
+            return tasks;
+        }).ToList();
+
+        await Task.WhenAll(tasks);
+
+        Assert.Equal(clientCount * taskCount, results.Count);
+
+        var failed = results.Count(i => i.All(v => v == 0));
+        Assert.Equal(0, failed);
     }
 }

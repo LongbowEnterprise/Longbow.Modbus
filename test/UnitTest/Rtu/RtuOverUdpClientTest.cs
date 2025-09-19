@@ -4,7 +4,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace UnitTestModbus;
+namespace UnitTest;
 
 [Collection("MockRtuOverUdpModbus")]
 public class RtuOverUdpClientTest

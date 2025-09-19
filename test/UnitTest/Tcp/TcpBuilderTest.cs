@@ -5,7 +5,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace UnitTestModbus;
+namespace UnitTest;
 
 public class TcpBuilderTest
 {

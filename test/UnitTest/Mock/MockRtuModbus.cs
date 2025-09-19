@@ -6,9 +6,9 @@ using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
-namespace UnitTestModbus;
+namespace UnitTest;
 
-internal static class MockTcpModbus
+internal static class MockRtuModbus
 {
     private static TcpListener? _listener;
 
@@ -111,22 +111,22 @@ internal static class MockTcpModbus
     }
 }
 
-class TcpModbusFixture : IDisposable
+class RtuModbusFixture : IDisposable
 {
-    public TcpModbusFixture()
+    public RtuModbusFixture()
     {
-        MockTcpModbus.Start();
+        MockRtuModbus.Start();
     }
 
     public void Dispose()
     {
-        MockTcpModbus.Stop();
+        MockRtuModbus.Stop();
         GC.SuppressFinalize(this);
     }
 }
 
-[CollectionDefinition("MockTcpModbus")]
-public class TcpModbusCollection : ICollectionFixture<TcpModbusFixture>
+[CollectionDefinition("MockRtuModbus")]
+public class RtuModbusCollection : ICollectionFixture<RtuModbusFixture>
 {
 
 }
