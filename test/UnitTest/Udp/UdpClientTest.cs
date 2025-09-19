@@ -48,10 +48,13 @@ public class UdpClientTest
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
 
-        await using var client2 = factory.GetOrCreateUdpMaster();
+        await using var client2 = factory.GetOrCreateUdpMaster("test");
         Assert.NotEqual(client, client2);
 
-        factory.RemoveTcpMaster("test");
+        var client3 = factory.GetOrCreateUdpMaster("test");
+        Assert.Equal(client2, client3);
+
+        factory.RemoveUdpMaster("test");
     }
 
     [Fact]
@@ -62,7 +65,7 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster();
+        await using var client = factory.GetOrCreateUdpMaster("test", op => op.ConnectTimeout = 1000);
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 504);
@@ -79,7 +82,7 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateUdpMaster("");
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 504);

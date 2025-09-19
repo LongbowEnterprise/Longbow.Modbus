@@ -59,7 +59,7 @@ public class RtuOverTcpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuOverTcpMaster("test");
+        var client = factory.GetOrCreateRtuOverTcpMaster("");
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 501);
@@ -84,6 +84,11 @@ public class RtuOverTcpClientTest
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
+
+        var client2 = factory.GetOrCreateRtuOverTcpMaster("test");
+        Assert.Equal(client, client2);
+
+        factory.RemoveRtuOverTcpMaster("test");
     }
 
     [Fact]

@@ -4,7 +4,6 @@
 
 using Longbow.SerialPorts;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using System.Collections.Concurrent;
 
 namespace Longbow.Modbus;
@@ -86,28 +85,13 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         return client;
     }
 
-    public IModbusTcpClient GetOrCreateUdpMaster(string name, Action<ModbusUdpClientOptions>? configureOptions = null)
-    {
-        if (string.IsNullOrEmpty(name))
-        {
-            var options = new ModbusUdpClientOptions();
-            configureOptions?.Invoke(options);
-            return new DefaultUdpClient(options, provider.GetRequiredService<IModbusTcpMessageBuilder>());
-        }
-        if (_udpPool.TryGetValue(name, out var client))
-        {
-            return client;
-        }
+    public IModbusTcpClient GetOrCreateUdpMaster(string name, Action<ModbusUdpClientOptions>? configureOptions = null) => string.IsNullOrEmpty(name)
+        ? CreateUdpClient(configureOptions)
+        : _udpPool.GetOrAdd(name, key => CreateUdpClient(configureOptions));
 
+    public IModbusTcpClient GetOrCreateUdpMaster(Action<ModbusUdpClientOptions>? configureOptions = null) => CreateUdpClient(configureOptions);
 
-        var op = new ModbusUdpClientOptions();
-        configureOptions?.Invoke(op);
-        client = new DefaultUdpClient(op, provider.GetRequiredService<IModbusTcpMessageBuilder>());
-        _udpPool.TryAdd(name, client);
-        return client;
-    }
-
-    public IModbusTcpClient GetOrCreateUdpMaster(Action<ModbusUdpClientOptions>? configureOptions = null)
+    private DefaultUdpClient CreateUdpClient(Action<ModbusUdpClientOptions>? configureOptions = null)
     {
         var op = new ModbusUdpClientOptions();
         configureOptions?.Invoke(op);
@@ -161,28 +145,13 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         return client;
     }
 
-    public IModbusTcpClient GetOrCreateRtuOverUdpMaster(string name, Action<ModbusUdpClientOptions>? configureOptions = null)
-    {
-        if (string.IsNullOrEmpty(name))
-        {
-            var options = new ModbusUdpClientOptions();
-            configureOptions?.Invoke(options);
-            return new DefaultModbusRtuOverUpdClient(options, provider.GetRequiredService<IModbusRtuMessageBuilder>());
-        }
-        if (_rtuOverUdpPool.TryGetValue(name, out var client))
-        {
-            return client;
-        }
+    public IModbusTcpClient GetOrCreateRtuOverUdpMaster(string name, Action<ModbusUdpClientOptions>? configureOptions = null) => string.IsNullOrEmpty(name)
+        ? CreateRtuOverUdpClient(configureOptions)
+        : _rtuOverUdpPool.GetOrAdd(name, key => CreateRtuOverUdpClient(configureOptions));
 
+    public IModbusTcpClient GetOrCreateRtuOverUdpMaster(Action<ModbusUdpClientOptions>? configureOptions = null) => CreateRtuOverUdpClient(configureOptions);
 
-        var op = new ModbusUdpClientOptions();
-        configureOptions?.Invoke(op);
-        client = new DefaultModbusRtuOverUpdClient(op, provider.GetRequiredService<IModbusRtuMessageBuilder>());
-        _rtuOverUdpPool.TryAdd(name, client);
-        return client;
-    }
-
-    public IModbusTcpClient GetOrCreateRtuOverUdpMaster(Action<ModbusUdpClientOptions>? configureOptions = null)
+    private IModbusTcpClient CreateRtuOverUdpClient(Action<ModbusUdpClientOptions>? configureOptions = null)
     {
         var op = new ModbusUdpClientOptions();
         configureOptions?.Invoke(op);

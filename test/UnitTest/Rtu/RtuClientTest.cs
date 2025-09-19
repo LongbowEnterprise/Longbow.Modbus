@@ -83,7 +83,7 @@ public class RtuClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateRtuMaster("test");
+        await using var client = factory.GetOrCreateRtuMaster("");
 
         // 连接 Master
         await client.ConnectAsync();
