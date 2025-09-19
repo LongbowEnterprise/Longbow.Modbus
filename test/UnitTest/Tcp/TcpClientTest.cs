@@ -18,7 +18,7 @@ public class TcpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster();
 
         // 未连接 Master 直接读取
         var ex = await Assert.ThrowsAnyAsync<InvalidOperationException>(async () =>
@@ -36,7 +36,7 @@ public class TcpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test", op =>
+        await using var client = factory.GetOrCreateTcpMaster(op =>
         {
             op.ConnectTimeout = 1000;
             op.LocalEndPoint = new(IPAddress.Any, 0);
@@ -79,7 +79,10 @@ public class TcpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test", op =>
+        {
+            op.ConnectTimeout = 1000;
+        });
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 502);
@@ -96,7 +99,7 @@ public class TcpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("");
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 502);
@@ -122,6 +125,8 @@ public class TcpClientTest
 
         response = await client.WriteCoilAsync(0x01, 0, false);
         Assert.True(response);
+
+        factory.RemoveTcpMaster("test");
     }
 
     [Fact]

@@ -18,7 +18,7 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateUdpMaster();
 
         // 未连接 Master 直接读取
         var ex = await Assert.ThrowsAnyAsync<InvalidOperationException>(async () =>
@@ -36,7 +36,7 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test", op =>
+        await using var client = factory.GetOrCreateUdpMaster(op =>
         {
             op.ConnectTimeout = 1000;
             op.LocalEndPoint = new(IPAddress.Any, 0);
@@ -62,7 +62,7 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test");
+        await using var client = factory.GetOrCreateUdpMaster();
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 504);

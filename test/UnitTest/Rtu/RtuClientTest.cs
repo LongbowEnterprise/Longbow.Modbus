@@ -35,7 +35,7 @@ public class RtuClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuMaster("test", op =>
+        var client = factory.GetOrCreateRtuMaster(op =>
         {
             op.PortName = "COM1";
             op.DiscardNull = false;
@@ -66,11 +66,11 @@ public class RtuClientTest
         Assert.NotNull(response);
         Assert.Equal(5, response.Length);
 
-        var client2 = factory.GetOrCreateRtuMaster();
+        var client2 = factory.GetOrCreateRtuMaster("test");
         Assert.NotEqual(client, client2);
 
         var client3 = factory.GetOrCreateRtuMaster("test");
-        Assert.Equal(client, client3);
+        Assert.Equal(client2, client3);
 
         await using var client4 = factory.RemoveRtuMaster("test");
     }
