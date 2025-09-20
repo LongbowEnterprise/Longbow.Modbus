@@ -40,6 +40,8 @@ public class TcpClientTest
         {
             op.ConnectTimeout = 1000;
             op.LocalEndPoint = new(IPAddress.Any, 0);
+            op.ReceiveBufferSize = 1024;
+            op.NoDelay = false;
         });
 
         // 连接 Master
