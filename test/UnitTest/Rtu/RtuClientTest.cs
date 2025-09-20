@@ -35,7 +35,7 @@ public class RtuClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuMaster(op =>
+        await using var client = factory.GetOrCreateRtuMaster(op =>
         {
             op.PortName = "COM1";
             op.DiscardNull = false;
