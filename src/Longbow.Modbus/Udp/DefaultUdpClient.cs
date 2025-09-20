@@ -21,22 +21,12 @@ class DefaultUdpClient(ModbusUdpClientOptions options, IModbusMessageBuilder bui
 
     protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)
     {
-        var ret = ReadOnlyMemory<byte>.Empty;
-        try
-        {
-            var sendToken = new CancellationTokenSource(options.WriteTimeout);
-            await _client.SendAsync(request, sendToken.Token);
+        var sendToken = new CancellationTokenSource(options.WriteTimeout);
+        await _client.SendAsync(request, sendToken.Token);
 
-            var receiveToken = new CancellationTokenSource(options.ReadTimeout);
-            var result = await _client.ReceiveAsync(receiveToken.Token);
-            ret = result.Buffer;
-        }
-        catch (Exception ex)
-        {
-            Exception = ex;
-        }
-
-        return ret;
+        var receiveToken = new CancellationTokenSource(options.ReadTimeout);
+        var result = await _client.ReceiveAsync(receiveToken.Token);
+        return result.Buffer;
     }
 
     /// <summary>
