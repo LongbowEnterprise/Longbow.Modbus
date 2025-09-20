@@ -42,10 +42,10 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
 
         var crc = ModbusCrc16.Compute(buffer.Span[0..(2 + data.Length)]);
 
-        request[4 + data.Length] = (byte)(crc & 0xFF);
-        request[5 + data.Length] = (byte)(crc >> 8);
+        request[2 + 2 + data.Length] = (byte)(crc & 0xFF);
+        request[3 + 2 + data.Length] = (byte)(crc >> 8);
 
-        return 6 + data.Length;
+        return 4 + 2 + data.Length;
     }
 
     public bool TryValidateReadResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, [NotNullWhen(false)] out Exception? exception)
