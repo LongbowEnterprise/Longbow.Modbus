@@ -11,39 +11,28 @@ namespace Longbow.Modbus;
 /// </summary>
 class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
 {
-    /// <summary>
-    /// 构建 Modbus RTU 读取消息方法
-    /// </summary>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="startAddress"></param>
-    /// <param name="numberOfPoints"></param>
-    /// <returns></returns>
-    public ReadOnlyMemory<byte> BuildReadRequest(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
+    public int BuildReadRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
     {
-        ReadOnlySpan<byte> request =
-        [
-            slaveAddress,                   // 00 从站地址
-            functionCode,                   // 01 功能码
-            (byte)(startAddress >> 8),      // 02 起始地址高字节
-            (byte)(startAddress & 0xFF),    // 03 起始地址低字节
-            (byte)(numberOfPoints >> 8),    // 04 寄存器数量高字节
-            (byte)(numberOfPoints & 0xFF)   // 05 寄存器数量低字节
-        ];
+        var request = buffer.Span;
 
-        return ModbusCrc16.Append(request).ToArray();
+        request[0] = slaveAddress;                    // 00 从站地址
+        request[1] = functionCode;                    // 01 功能码
+        request[2] = (byte)(startAddress >> 8);       // 02 起始地址高字节
+        request[3] = (byte)(startAddress & 0xFF);     // 03 起始地址低字节
+        request[4] = (byte)(numberOfPoints >> 8);     // 04 寄存器数量高字节
+        request[5] = (byte)(numberOfPoints & 0xFF);   // 05 寄存器数量低字节
+
+        var crc = ModbusCrc16.Compute(buffer.Span[0..6]);
+
+        request[6] = (byte)(crc & 0xFF);
+        request[7] = (byte)(crc >> 8);
+
+        return 8;
     }
 
-    /// <summary>
-    /// 构建 Modbus RTU 写入消息方法
-    /// </summary>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    public ReadOnlyMemory<byte> BuildWriteRequest(byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
+    public int BuildWriteRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
     {
-        Span<byte> request = stackalloc byte[2 + data.Length];
+        var request = buffer.Span;
 
         request[0] = slaveAddress;                  // 00 从站地址
         request[1] = functionCode;                  // 01 功能码
@@ -51,17 +40,9 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
         // 写入数据部分
         data.Span.CopyTo(request[2..]);
 
-        return ModbusCrc16.Append(request).ToArray();
+        return 2 + data.Length;
     }
 
-    /// <summary>
-    /// 验证 Modbus RTU 读取响应消息方法
-    /// </summary>
-    /// <param name="response"></param>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="exception"></param>
-    /// <returns></returns>
     public bool TryValidateReadResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, [NotNullWhen(false)] out Exception? exception)
     {
         if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
@@ -88,15 +69,6 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
         return true;
     }
 
-    /// <summary>
-    /// 验证 Modbus RTU 写入响应消息方法
-    /// </summary>
-    /// <param name="response"></param>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="data"></param>
-    /// <param name="exception"></param>
-    /// <returns></returns>
     public bool TryValidateWriteResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data, [NotNullWhen(false)] out Exception? exception)
     {
         if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
@@ -196,10 +168,12 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
         return values;
     }
 
-    public ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
+    public int WriteBoolValues(Memory<byte> buffer, ushort address, bool[] values)
     {
         int byteCount = (values.Length + 7) / 8;
-        Span<byte> data = stackalloc byte[values.Length > 1 ? 5 + byteCount : 4];
+        var len = values.Length > 1 ? 5 + byteCount : 4;
+
+        var data = buffer.Span;
         data[0] = (byte)(address >> 8);
         data[1] = (byte)address;
 
@@ -229,13 +203,15 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
             data[3] = 0x00;
         }
 
-        return data.ToArray();
+        return len;
     }
 
-    public ReadOnlyMemory<byte> WriteUShortValues(ushort address, ushort[] values)
+    public int WriteUShortValues(Memory<byte> buffer, ushort address, ushort[] values)
     {
         int byteCount = values.Length * 2;
-        Span<byte> data = stackalloc byte[values.Length > 1 ? 5 + byteCount : 4];
+        var len = values.Length > 1 ? 5 + byteCount : 4;
+
+        var data = buffer.Span;
         data[0] = (byte)(address >> 8);
         data[1] = (byte)address;
 
@@ -260,6 +236,6 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
             data[3] = (byte)(values[0] & 0xFF);
         }
 
-        return data.ToArray();
+        return len;
     }
 }

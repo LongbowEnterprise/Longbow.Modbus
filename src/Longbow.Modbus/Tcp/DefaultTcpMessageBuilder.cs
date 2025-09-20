@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
-using System.Buffers;
-
 namespace Longbow.Modbus;
 
 /// <summary>
@@ -14,19 +12,11 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
     // 事务标识符计数器
     private uint _transactionId = 0;
 
-    /// <summary>
-    /// 构建 Modbus TCP 读取消息方法
-    /// </summary>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="startAddress"></param>
-    /// <param name="numberOfPoints"></param>
-    /// <returns></returns>
-    public ReadOnlyMemory<byte> BuildReadRequest(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
+    public int BuildReadRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
     {
         var transactionId = GetTransactionId();
 
-        var request = new byte[12];
+        var request = buffer.Span;
 
         // MBAP头（7字节）
         request[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
@@ -44,22 +34,14 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         request[10] = (byte)(numberOfPoints >> 8);  // 10 寄存器数量高字节
         request[11] = (byte)(numberOfPoints & 0xFF);// 11 寄存器数量低字节
 
-        return request;
+        return 12;
     }
 
-    /// <summary>
-    /// 构建 Modbus TCP 写入消息方法
-    /// </summary>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    public ReadOnlyMemory<byte> BuildWriteRequest(byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
+    public int BuildWriteRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
     {
         var transactionId = GetTransactionId();
 
-        var len = 8 + data.Length;
-        var request = new byte[len];
+        var request = buffer.Span;
 
         // MBAP头（7字节）
         request[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
@@ -74,9 +56,9 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         request[7] = functionCode;                  // 07 功能码
 
         // 写入数据部分
-        data.CopyTo(request.AsMemory(8..));
+        data.CopyTo(buffer[8..]);
 
-        return request;
+        return 8 + data.Length;
     }
 
     private uint GetTransactionId()
@@ -90,14 +72,6 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         return Interlocked.Increment(ref _transactionId);
     }
 
-    /// <summary>
-    /// 验证 Modbus TCP 读取响应消息方法
-    /// </summary>
-    /// <param name="response"></param>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="exception"></param>
-    /// <returns></returns>
     public bool TryValidateReadResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, [NotNullWhen(false)] out Exception? exception)
     {
         if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
@@ -117,15 +91,6 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         return true;
     }
 
-    /// <summary>
-    /// 验证 Modbus TCP 写入响应消息方法
-    /// </summary>
-    /// <param name="response"></param>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="data"></param>
-    /// <param name="exception"></param>
-    /// <returns></returns>
     public bool TryValidateWriteResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data, [NotNullWhen(false)] out Exception? exception)
     {
         if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
@@ -232,12 +197,11 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         return values;
     }
 
-    public ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
+    public int WriteBoolValues(Memory<byte> buffer, ushort address, bool[] values)
     {
         int byteCount = (values.Length + 7) / 8;
         var len = values.Length > 1 ? 5 + byteCount : 4;
-        var buffer = MemoryPool<byte>.Shared.Rent(len);
-        var span = buffer.Memory.Span;
+        var span = buffer.Span;
         span[0] = (byte)(address >> 8);
         span[1] = (byte)address;
 
@@ -267,15 +231,14 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
             span[3] = 0x00;
         }
 
-        return buffer.Memory[0..len];
+        return len;
     }
 
-    public ReadOnlyMemory<byte> WriteUShortValues(ushort address, ushort[] values)
+    public int WriteUShortValues(Memory<byte> buffer, ushort address, ushort[] values)
     {
         int byteCount = values.Length * 2;
         var len = values.Length > 1 ? 5 + byteCount : 4;
-        var buffer = MemoryPool<byte>.Shared.Rent(len);
-        var span = buffer.Memory.Span;
+        var span = buffer.Span;
         span[0] = (byte)(address >> 8);
         span[1] = (byte)address;
 
@@ -300,6 +263,6 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
             span[3] = (byte)(values[0] & 0xFF);
         }
 
-        return buffer.Memory[0..len];
+        return len;
     }
 }

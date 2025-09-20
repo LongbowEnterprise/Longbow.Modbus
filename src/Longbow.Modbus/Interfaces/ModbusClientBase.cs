@@ -2,6 +2,8 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
+using System.Buffers;
+
 namespace Longbow.Modbus;
 
 abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
@@ -64,15 +66,19 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
 
     private async ValueTask<ReadOnlyMemory<byte>> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
+        byte[]? buffer = null;
+
         try
         {
             await _semaphore.WaitAsync(token).ConfigureAwait(false);
 
+            buffer = ArrayPool<byte>.Shared.Rent(12);
+
             // 构建请求报文
-            var request = builder.BuildReadRequest(slaveAddress, functionCode, startAddress, numberOfPoints);
+            var len = builder.BuildReadRequest(buffer, slaveAddress, functionCode, startAddress, numberOfPoints);
 
             // 发送请求
-            var received = await SendAsync(request, token);
+            var received = await SendAsync(buffer.AsMemory()[0..12], token);
 
             // 验证响应报文
             var valid = builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception);
@@ -82,22 +88,35 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
         finally
         {
+            if (buffer != null)
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+
             Release();
         }
     }
 
     private async ValueTask<bool> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values, CancellationToken token = default)
     {
+        byte[]? valueBuffer = null;
+        byte[]? buffer = null;
+
         try
         {
             await _semaphore.WaitAsync(token).ConfigureAwait(false);
 
+            // 构建数据值集合
+            valueBuffer = ArrayPool<byte>.Shared.Rent(2000);
+            var len = builder.WriteBoolValues(buffer, address, values);
+            var data = valueBuffer.AsMemory()[0..len];
+
             // 构建请求报文
-            var data = builder.WriteBoolValues(address, values);
-            var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
+            buffer = ArrayPool<byte>.Shared.Rent(2000);
+            var request = builder.BuildWriteRequest(buffer, slaveAddress, functionCode, data);
 
             // 发送请求
-            var received = await SendAsync(request, token);
+            var received = await SendAsync(buffer.AsMemory()[0..request], token);
 
             // 验证响应报文
             var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
@@ -107,22 +126,39 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
         finally
         {
+            if (valueBuffer != null)
+            {
+                ArrayPool<byte>.Shared.Return(valueBuffer);
+            }
+            if (buffer != null)
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+
             Release();
         }
     }
 
     private async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values, CancellationToken token = default)
     {
+        byte[]? valueBuffer = null;
+        byte[]? buffer = null;
+
         try
         {
             await _semaphore.WaitAsync(token).ConfigureAwait(false);
 
+            // 构建数据值集合
+            valueBuffer = ArrayPool<byte>.Shared.Rent(2000);
+            var len = builder.WriteUShortValues(valueBuffer, address, values);
+            var data = valueBuffer.AsMemory()[0..len];
+
             // 构建请求报文
-            var data = builder.WriteUShortValues(address, values);
-            var request = builder.BuildWriteRequest(slaveAddress, functionCode, data);
+            buffer = ArrayPool<byte>.Shared.Rent(2000);
+            var request = builder.BuildWriteRequest(buffer, slaveAddress, functionCode, data);
 
             // 发送请求
-            var received = await SendAsync(request, token);
+            var received = await SendAsync(buffer.AsMemory()[0..request], token);
 
             // 验证响应报文
             var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
@@ -132,6 +168,15 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
         finally
         {
+            if (valueBuffer != null)
+            {
+                ArrayPool<byte>.Shared.Return(valueBuffer);
+            }
+            if (buffer != null)
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
+
             Release();
         }
     }

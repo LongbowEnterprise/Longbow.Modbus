@@ -12,21 +12,23 @@ public interface IModbusMessageBuilder
     /// <summary>
     /// 构建 Modbus 读取消息方法
     /// </summary>
+    /// <param name="buffer"></param>
     /// <param name="slaveAddress"></param>
     /// <param name="functionCode"></param>
     /// <param name="startAddress"></param>
     /// <param name="numberOfPoints"></param>
     /// <returns></returns>
-    ReadOnlyMemory<byte> BuildReadRequest(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints);
+    int BuildReadRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints);
 
     /// <summary>
     /// 构建 Modbus 写入消息方法
     /// </summary>
+    /// <param name="buffer"></param>
     /// <param name="slaveAddress"></param>
     /// <param name="functionCode"></param>
     /// <param name="data"></param>
     /// <returns></returns>
-    ReadOnlyMemory<byte> BuildWriteRequest(byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data);
+    int BuildWriteRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data);
 
     /// <summary>
     /// 验证 Modbus 读取响应消息方法
@@ -68,16 +70,18 @@ public interface IModbusMessageBuilder
     /// <summary>
     /// 将布尔值数组转换为字节数组算法
     /// </summary>
+    /// <param name="buffer"></param>
     /// <param name="address"></param>
     /// <param name="values"></param>
     /// <returns></returns>
-    ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values);
+    int WriteBoolValues(Memory<byte> buffer, ushort address, bool[] values);
 
     /// <summary>
     /// 将无符号短整数数组转换为字节数组算法
     /// </summary>
+    /// <param name="buffer"></param>
     /// <param name="address"></param>
     /// <param name="values"></param>
     /// <returns></returns>
-    ReadOnlyMemory<byte> WriteUShortValues(ushort address, ushort[] values);
+    int WriteUShortValues(Memory<byte> buffer, ushort address, ushort[] values);
 }
