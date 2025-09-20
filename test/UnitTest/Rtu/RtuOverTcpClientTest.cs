@@ -21,7 +21,7 @@ public class RtuOverTcpClientTest
         await using var client = factory.GetOrCreateRtuOverTcpMaster();
 
         // 连接 Master
-        var connected = await client.ConnectAsync("127.0.0.1", 501);
+        var connected = await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         Assert.True(connected);
 
         var response = await client.ReadCoilsAsync(0x01, 0, 10);
@@ -44,7 +44,7 @@ public class RtuOverTcpClientTest
         });
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 501);
+        await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         var response = await client.ReadInputsAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -62,7 +62,7 @@ public class RtuOverTcpClientTest
         var client = factory.GetOrCreateRtuOverTcpMaster("");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 501);
+        await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         var response = await client.ReadHoldingRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -80,7 +80,7 @@ public class RtuOverTcpClientTest
         var client = factory.GetOrCreateRtuOverTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 501);
+        await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -103,7 +103,7 @@ public class RtuOverTcpClientTest
         var client = factory.GetOrCreateRtuOverTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 501);
+        await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         var response = await client.WriteCoilAsync(0x01, 0, true);
         Assert.True(response);
 
@@ -123,7 +123,7 @@ public class RtuOverTcpClientTest
         var client = factory.GetOrCreateRtuOverTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 501);
+        await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         var response = await client.WriteMultipleCoilsAsync(0x01, 0, [true, true, true, true, true, true, true, true, false, true]);
         Assert.True(response);
     }
@@ -140,7 +140,7 @@ public class RtuOverTcpClientTest
         var client = factory.GetOrCreateRtuOverTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 501);
+        await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         var response = await client.WriteRegisterAsync(0x01, 0, 12);
         Assert.True(response);
     }
@@ -157,7 +157,7 @@ public class RtuOverTcpClientTest
         var client = factory.GetOrCreateRtuOverTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 501);
+        await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         var response = await client.WriteMultipleRegistersAsync(0x01, 0, [12, 0, 23, 0, 46, 0, 01, 02, 04, 05]);
         Assert.True(response);
     }

@@ -15,7 +15,7 @@ internal static class MockUdpModbus
     public static Socket Start()
     {
         _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        _socket.Bind(new IPEndPoint(IPAddress.Any, 504));
+        _socket.Bind(new IPEndPoint(IPAddress.Any, UdpModbusFixture.Port));
         Task.Run(() => AcceptClientsAsync(_socket));
         return _socket;
     }
@@ -98,6 +98,8 @@ internal static class MockUdpModbus
 
 class UdpModbusFixture : IDisposable
 {
+    public static readonly int Port = 8504;
+
     public UdpModbusFixture()
     {
         MockUdpModbus.Start();

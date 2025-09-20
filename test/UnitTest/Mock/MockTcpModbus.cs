@@ -14,7 +14,7 @@ internal static class MockTcpModbus
 
     public static TcpListener Start()
     {
-        _listener = new TcpListener(IPAddress.Loopback, 502);
+        _listener = new TcpListener(IPAddress.Loopback, TcpModbusFixture.Port);
         _listener.Start();
         Task.Run(() => AcceptClientsAsync(_listener));
         return _listener;
@@ -119,8 +119,10 @@ internal static class MockTcpModbus
     }
 }
 
-class TcpModbusFixture : IDisposable
+public class TcpModbusFixture : IDisposable
 {
+    public static readonly int Port = 8502;
+
     public TcpModbusFixture()
     {
         MockTcpModbus.Start();
