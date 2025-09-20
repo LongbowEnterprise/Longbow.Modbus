@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
-using Longbow.Sockets.Algorithm;
+using Longbow.Modbus.Algorithm;
 
 namespace Longbow.Modbus;
 
