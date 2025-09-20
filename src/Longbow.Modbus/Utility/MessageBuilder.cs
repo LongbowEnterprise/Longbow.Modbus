@@ -25,4 +25,76 @@ static class MessageBuilder
             throw new ArgumentException(msg, argumentName);
         }
     }
+
+
+    public static int WriteBoolValues(Memory<byte> buffer, ushort address, bool[] values)
+    {
+        int byteCount = (values.Length + 7) / 8;
+        var len = values.Length > 1 ? 5 + byteCount : 4;
+        var span = buffer.Span;
+
+        span[0] = (byte)(address >> 8);
+        span[1] = (byte)address;
+
+        if (values.Length > 1)
+        {
+            // 多值时，写入数量
+            span[2] = (byte)(values.Length >> 8);
+            span[3] = (byte)(values.Length);
+
+            // 字节数
+            span[4] = (byte)(byteCount);
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                if (values[i])
+                {
+                    int byteIndex = 5 + i / 8;
+                    int bitIndex = i % 8;
+                    span[byteIndex] |= (byte)(1 << bitIndex);
+                }
+            }
+        }
+        else
+        {
+            // 组装数据
+            span[2] = values[0] ? (byte)0xFF : (byte)0x00;
+            span[3] = 0x00;
+        }
+
+        return len;
+    }
+
+    public static int WriteUShortValues(Memory<byte> buffer, ushort address, ushort[] values)
+    {
+        int byteCount = values.Length * 2;
+        var len = values.Length > 1 ? 5 + byteCount : 4;
+        var span = buffer.Span;
+
+        span[0] = (byte)(address >> 8);
+        span[1] = (byte)address;
+
+        if (values.Length > 1)
+        {
+            // 多值时，写入数量
+            span[2] = (byte)(values.Length >> 8);
+            span[3] = (byte)(values.Length);
+
+            // 字节数
+            span[4] = (byte)(byteCount);
+
+            for (var i = 0; i < values.Length; i++)
+            {
+                span[i * 2 + 5] = (byte)(values[i] >> 8);
+                span[i * 2 + 6] = (byte)(values[i] & 0xFF);
+            }
+        }
+        else
+        {
+            span[2] = (byte)(values[0] >> 8);
+            span[3] = (byte)(values[0] & 0xFF);
+        }
+
+        return len;
+    }
 }

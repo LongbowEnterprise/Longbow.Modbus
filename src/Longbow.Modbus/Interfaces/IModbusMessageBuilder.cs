@@ -66,22 +66,4 @@ public interface IModbusMessageBuilder
     /// <param name="numberOfPoints"></param>
     /// <returns></returns>
     ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints);
-
-    /// <summary>
-    /// 将布尔值数组转换为字节数组算法
-    /// </summary>
-    /// <param name="buffer"></param>
-    /// <param name="address"></param>
-    /// <param name="values"></param>
-    /// <returns></returns>
-    int WriteBoolValues(Memory<byte> buffer, ushort address, bool[] values);
-
-    /// <summary>
-    /// 将无符号短整数数组转换为字节数组算法
-    /// </summary>
-    /// <param name="buffer"></param>
-    /// <param name="address"></param>
-    /// <param name="values"></param>
-    /// <returns></returns>
-    int WriteUShortValues(Memory<byte> buffer, ushort address, ushort[] values);
 }
