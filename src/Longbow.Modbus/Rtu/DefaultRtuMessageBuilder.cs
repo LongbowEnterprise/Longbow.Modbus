@@ -38,9 +38,14 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
         request[1] = functionCode;                  // 01 功能码
 
         // 写入数据部分
-        data.Span.CopyTo(request[2..]);
+        data.CopyTo(buffer[2..]);
 
-        return 2 + data.Length;
+        var crc = ModbusCrc16.Compute(buffer.Span[0..(2 + data.Length)]);
+
+        request[4 + data.Length] = (byte)(crc & 0xFF);
+        request[5 + data.Length] = (byte)(crc >> 8);
+
+        return 6 + data.Length;
     }
 
     public bool TryValidateReadResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, [NotNullWhen(false)] out Exception? exception)
