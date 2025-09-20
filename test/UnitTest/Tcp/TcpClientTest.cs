@@ -106,7 +106,7 @@ public class TcpClientTest
             op.ConnectTimeout = 1000;
         });
 
-        // 读取 20 个寄存器，模拟响应不正确逻辑
+        // 读取寄存器，模拟响应不正确逻辑
         await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.ReadHoldingRegistersAsync(0x01, 0, 20);
     }
@@ -207,7 +207,7 @@ public class TcpClientTest
         var factory = provider.GetRequiredService<IModbusFactory>();
         await using var client = factory.GetOrCreateTcpMaster("test");
 
-        // 写入 20 个寄存器，模拟响应不正确逻辑
+        // 模拟响应不正确逻辑
         await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.WriteRegisterAsync(0x01, 1, 12);
         Assert.False(response);
