@@ -4,7 +4,6 @@
 
 using Longbow.SerialPorts;
 using Microsoft.Extensions.Options;
-using System.IO;
 using System.Net.Sockets;
 using UnitTest;
 
