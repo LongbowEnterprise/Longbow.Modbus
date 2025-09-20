@@ -7,7 +7,7 @@ using System.Net;
 
 namespace Longbow.Modbus;
 
-class DefaultTcpClient(ITcpSocketClient client, IModbusTcpMessageBuilder builder) : ModbusClientBase(builder), IModbusTcpClient
+class DefaultTcpClient(ITcpSocketClient client, IModbusMessageBuilder builder) : ModbusClientBase(builder), IModbusTcpClient
 {
     public ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default) => client.ConnectAsync(endPoint, token);
 

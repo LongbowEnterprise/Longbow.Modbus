@@ -114,7 +114,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 
     public IModbusTcpClient GetOrCreateRtuOverTcpMaster(Action<ModbusTcpClientOptions>? valueFactory = null) => CreateRtuOverTcpClient(valueFactory);
 
-    private DefaultRtuOverTcpClient CreateRtuOverTcpClient(Action<ModbusTcpClientOptions>? configureOptions = null)
+    private DefaultTcpClient CreateRtuOverTcpClient(Action<ModbusTcpClientOptions>? configureOptions = null)
     {
         var factory = provider.GetRequiredService<ITcpSocketFactory>();
 
@@ -132,7 +132,7 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
             op.LocalEndPoint = options.LocalEndPoint;
         });
         var builder = provider.GetRequiredService<IModbusRtuMessageBuilder>();
-        return new DefaultRtuOverTcpClient(client, builder);
+        return new DefaultTcpClient(client, builder);
     }
 
     public IModbusTcpClient? RemoveRtuOverTcpMaster(string name)
@@ -151,11 +151,11 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
 
     public IModbusTcpClient GetOrCreateRtuOverUdpMaster(Action<ModbusUdpClientOptions>? configureOptions = null) => CreateRtuOverUdpClient(configureOptions);
 
-    private IModbusTcpClient CreateRtuOverUdpClient(Action<ModbusUdpClientOptions>? configureOptions = null)
+    private DefaultUdpClient CreateRtuOverUdpClient(Action<ModbusUdpClientOptions>? configureOptions = null)
     {
         var op = new ModbusUdpClientOptions();
         configureOptions?.Invoke(op);
-        return new DefaultModbusRtuOverUpdClient(op, provider.GetRequiredService<IModbusRtuMessageBuilder>());
+        return new DefaultUdpClient(op, provider.GetRequiredService<IModbusRtuMessageBuilder>());
     }
 
     public IModbusTcpClient? RemoveRtuOverUdpMaster(string name)
