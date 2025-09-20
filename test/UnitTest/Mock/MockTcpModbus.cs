@@ -67,7 +67,15 @@ internal static class MockTcpModbus
                 else if (functionCode == 0x03)
                 {
                     // ReadHoldingRegistersAsync
-                    await stream.WriteAsync(MockTcpResponse.ReadHoldingRegistersResponse(request), CancellationToken.None);
+                    if (request.Span[11] == 10)
+                    {
+                        await stream.WriteAsync(MockTcpResponse.ReadHoldingRegistersResponse(request), CancellationToken.None);
+                    }
+                    else
+                    {
+                        // 响应 ReadHoldingRegisterAsync_Exception 单元测试
+                        await stream.WriteAsync(MockTcpResponse.ReadHoldingRegistersErrorResponse(request), CancellationToken.None);
+                    }
                 }
                 else if (functionCode == 0x04)
                 {

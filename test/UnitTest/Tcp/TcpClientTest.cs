@@ -94,6 +94,24 @@ public class TcpClientTest
     }
 
     [Fact]
+    public async Task ReadHoldingRegisterAsync_Failed()
+    {
+        var sc = new ServiceCollection();
+        sc.AddModbusFactory();
+
+        var provider = sc.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IModbusFactory>();
+        await using var client = factory.GetOrCreateTcpMaster("test", op =>
+        {
+            op.ConnectTimeout = 1000;
+        });
+
+        // 读取 20 个寄存器，模拟响应不正确逻辑
+        await client.ConnectAsync("127.0.0.1", 502);
+        var response = await client.ReadHoldingRegistersAsync(0x01, 0, 20);
+    }
+
+    [Fact]
     public async Task ReadInputRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
@@ -132,6 +150,22 @@ public class TcpClientTest
     }
 
     [Fact]
+    public async Task WriteCoilAsync_Failed()
+    {
+        var sc = new ServiceCollection();
+        sc.AddModbusFactory();
+
+        var provider = sc.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IModbusFactory>();
+        await using var client = factory.GetOrCreateTcpMaster("test");
+
+        // 连接 Master
+        await client.ConnectAsync("127.0.0.1", 502);
+        var response = await client.WriteCoilAsync(0x01, 1, true);
+        Assert.False(response);
+    }
+
+    [Fact]
     public async Task WriteMultipleCoilsAsync_Ok()
     {
         var sc = new ServiceCollection();
@@ -148,7 +182,7 @@ public class TcpClientTest
     }
 
     [Fact]
-    public async Task WriteRegisterAsync()
+    public async Task WriteRegisterAsync_Ok()
     {
         var sc = new ServiceCollection();
         sc.AddModbusFactory();
@@ -161,6 +195,22 @@ public class TcpClientTest
         await client.ConnectAsync("127.0.0.1", 502);
         var response = await client.WriteRegisterAsync(0x01, 0, 12);
         Assert.True(response);
+    }
+
+    [Fact]
+    public async Task WriteRegisterAsync_Failed()
+    {
+        var sc = new ServiceCollection();
+        sc.AddModbusFactory();
+
+        var provider = sc.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IModbusFactory>();
+        await using var client = factory.GetOrCreateTcpMaster("test");
+
+        // 写入 20 个寄存器，模拟响应不正确逻辑
+        await client.ConnectAsync("127.0.0.1", 502);
+        var response = await client.WriteRegisterAsync(0x01, 1, 12);
+        Assert.False(response);
     }
 
     [Fact]
