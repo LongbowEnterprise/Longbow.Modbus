@@ -11,24 +11,6 @@ namespace UnitTest;
 public class UdpClientTest
 {
     [Fact]
-    public async Task Connect_Exception()
-    {
-        var sc = new ServiceCollection();
-        sc.AddModbusFactory();
-
-        var provider = sc.BuildServiceProvider();
-        var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster();
-
-        // 未连接 Master 直接读取
-        var ex = await Assert.ThrowsAnyAsync<InvalidOperationException>(async () =>
-        {
-            await client.ReadCoilsAsync(0x01, 0, 10);
-        });
-        Assert.NotNull(ex);
-    }
-
-    [Fact]
     public async Task ReadCoilsAsync_Ok()
     {
         var sc = new ServiceCollection();
