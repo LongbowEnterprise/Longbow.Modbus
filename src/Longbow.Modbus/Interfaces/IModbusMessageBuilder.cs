@@ -50,20 +50,4 @@ public interface IModbusMessageBuilder
     /// <param name="exception"></param>
     /// <returns></returns>
     bool TryValidateWriteResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data, [NotNullWhen(false)] out Exception? exception);
-
-    /// <summary>
-    /// 解析布尔值数组算法
-    /// </summary>
-    /// <param name="response"></param>
-    /// <param name="numberOfPoints"></param>
-    /// <returns></returns>
-    bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints);
-
-    /// <summary>
-    /// 解析无符号短整数数组算法
-    /// </summary>
-    /// <param name="response"></param>
-    /// <param name="numberOfPoints"></param>
-    /// <returns></returns>
-    ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints);
 }

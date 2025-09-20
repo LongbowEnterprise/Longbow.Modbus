@@ -168,32 +168,4 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
             _ => $"未知错误码: 0x{errorCode:X2}"
         };
     }
-
-    public bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
-    {
-        var values = new bool[numberOfPoints];
-        for (var i = 0; i < numberOfPoints; i++)
-        {
-            var byteIndex = 9 + i / 8;
-            var bitIndex = i % 8;
-            values[i] = (response.Span[byteIndex] & (1 << bitIndex)) != 0;
-        }
-
-        return values;
-    }
-
-    public ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
-    {
-        var values = new ushort[numberOfPoints];
-        if (response.Length >= 9 + numberOfPoints * 2)
-        {
-            for (var i = 0; i < numberOfPoints; i++)
-            {
-                int offset = 9 + (i * 2);
-                values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
-            }
-        }
-
-        return values;
-    }
 }
