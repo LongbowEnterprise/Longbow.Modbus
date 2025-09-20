@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
-using Longbow.Sockets.Algorithm;
+using Longbow.Modbus.Algorithm;
 
 namespace Longbow.Modbus;
 
@@ -11,57 +11,43 @@ namespace Longbow.Modbus;
 /// </summary>
 class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
 {
-    /// <summary>
-    /// 构建 Modbus RTU 读取消息方法
-    /// </summary>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="startAddress"></param>
-    /// <param name="numberOfPoints"></param>
-    /// <returns></returns>
-    public ReadOnlyMemory<byte> BuildReadRequest(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
+    public int BuildReadRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
     {
-        ReadOnlySpan<byte> request =
-        [
-            slaveAddress,                   // 00 从站地址
-            functionCode,                   // 01 功能码
-            (byte)(startAddress >> 8),      // 02 起始地址高字节
-            (byte)(startAddress & 0xFF),    // 03 起始地址低字节
-            (byte)(numberOfPoints >> 8),    // 04 寄存器数量高字节
-            (byte)(numberOfPoints & 0xFF)   // 05 寄存器数量低字节
-        ];
+        var request = buffer.Span;
 
-        return ModbusCrc16.Append(request).ToArray();
+        request[0] = slaveAddress;                    // 00 从站地址
+        request[1] = functionCode;                    // 01 功能码
+        request[2] = (byte)(startAddress >> 8);       // 02 起始地址高字节
+        request[3] = (byte)(startAddress & 0xFF);     // 03 起始地址低字节
+        request[4] = (byte)(numberOfPoints >> 8);     // 04 寄存器数量高字节
+        request[5] = (byte)(numberOfPoints & 0xFF);   // 05 寄存器数量低字节
+
+        var crc = ModbusCrc16.Compute(buffer.Span[0..6]);
+
+        request[6] = (byte)(crc & 0xFF);
+        request[7] = (byte)(crc >> 8);
+
+        return 8;
     }
 
-    /// <summary>
-    /// 构建 Modbus RTU 写入消息方法
-    /// </summary>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    public ReadOnlyMemory<byte> BuildWriteRequest(byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
+    public int BuildWriteRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
     {
-        Span<byte> request = stackalloc byte[2 + data.Length];
+        var request = buffer.Span;
 
         request[0] = slaveAddress;                  // 00 从站地址
         request[1] = functionCode;                  // 01 功能码
 
         // 写入数据部分
-        data.Span.CopyTo(request[2..]);
+        data.CopyTo(buffer[2..]);
 
-        return ModbusCrc16.Append(request).ToArray();
+        var crc = ModbusCrc16.Compute(buffer.Span[0..(2 + data.Length)]);
+
+        request[2 + 2 + data.Length] = (byte)(crc & 0xFF);
+        request[3 + 2 + data.Length] = (byte)(crc >> 8);
+
+        return 4 + 2 + data.Length;
     }
 
-    /// <summary>
-    /// 验证 Modbus RTU 读取响应消息方法
-    /// </summary>
-    /// <param name="response"></param>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="exception"></param>
-    /// <returns></returns>
     public bool TryValidateReadResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, [NotNullWhen(false)] out Exception? exception)
     {
         if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
@@ -88,15 +74,6 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
         return true;
     }
 
-    /// <summary>
-    /// 验证 Modbus RTU 写入响应消息方法
-    /// </summary>
-    /// <param name="response"></param>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="data"></param>
-    /// <param name="exception"></param>
-    /// <returns></returns>
     public bool TryValidateWriteResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data, [NotNullWhen(false)] out Exception? exception)
     {
         if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
@@ -169,97 +146,5 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
             0x04 => "从站设备故障",
             _ => $"未知错误码: 0x{errorCode:X2}"
         };
-    }
-
-    public bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
-    {
-        var values = new bool[numberOfPoints];
-        for (var i = 0; i < numberOfPoints; i++)
-        {
-            var byteIndex = 3 + i / 8;
-            var bitIndex = i % 8;
-            values[i] = (response.Span[byteIndex] & (1 << bitIndex)) != 0;
-        }
-
-        return values;
-    }
-
-    public ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
-    {
-        var values = new ushort[numberOfPoints];
-        for (var i = 0; i < numberOfPoints; i++)
-        {
-            int offset = 3 + (i * 2);
-            values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
-        }
-
-        return values;
-    }
-
-    public ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
-    {
-        int byteCount = (values.Length + 7) / 8;
-        Span<byte> data = stackalloc byte[values.Length > 1 ? 5 + byteCount : 4];
-        data[0] = (byte)(address >> 8);
-        data[1] = (byte)address;
-
-        if (values.Length > 1)
-        {
-            // 多值时，写入数量
-            data[2] = (byte)(values.Length >> 8);
-            data[3] = (byte)(values.Length);
-
-            // 字节数
-            data[4] = (byte)(byteCount);
-
-            for (var i = 0; i < values.Length; i++)
-            {
-                if (values[i])
-                {
-                    int byteIndex = 5 + i / 8;
-                    int bitIndex = i % 8;
-                    data[byteIndex] |= (byte)(1 << bitIndex);
-                }
-            }
-        }
-        else
-        {
-            // 组装数据
-            data[2] = values[0] ? (byte)0xFF : (byte)0x00;
-            data[3] = 0x00;
-        }
-
-        return data.ToArray();
-    }
-
-    public ReadOnlyMemory<byte> WriteUShortValues(ushort address, ushort[] values)
-    {
-        int byteCount = values.Length * 2;
-        Span<byte> data = stackalloc byte[values.Length > 1 ? 5 + byteCount : 4];
-        data[0] = (byte)(address >> 8);
-        data[1] = (byte)address;
-
-        if (values.Length > 1)
-        {
-            // 多值时，写入数量
-            data[2] = (byte)(values.Length >> 8);
-            data[3] = (byte)(values.Length);
-
-            // 字节数
-            data[4] = (byte)(byteCount);
-
-            for (var i = 0; i < values.Length; i++)
-            {
-                data[i * 2 + 5] = (byte)(values[i] >> 8);
-                data[i * 2 + 6] = (byte)(values[i] & 0xFF);
-            }
-        }
-        else
-        {
-            data[2] = (byte)(values[0] >> 8);
-            data[3] = (byte)(values[0] & 0xFF);
-        }
-
-        return data.ToArray();
     }
 }

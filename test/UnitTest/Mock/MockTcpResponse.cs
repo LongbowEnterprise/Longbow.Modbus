@@ -15,11 +15,11 @@ static class MockTcpResponse
     public static ReadOnlyMemory<byte> ReadHoldingRegistersResponse(ReadOnlyMemory<byte> request) =>
         GenerateResponse(request, "00 00 00 17 01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04 00 05");
 
-    public static ReadOnlyMemory<byte> ReadHoldingRegistersErrorResponse(ReadOnlyMemory<byte> request) =>
-        GenerateResponse(request, "00 00 00 17 01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04");
-
     public static ReadOnlyMemory<byte> ReadInputRegistersResponse(ReadOnlyMemory<byte> request) =>
         GenerateResponse(request, "00 00 00 17 01 04 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00");
+
+    public static ReadOnlyMemory<byte> ReadInputRegistersErrorResponse(ReadOnlyMemory<byte> request) =>
+        GenerateResponse(request, "00 00 00 17 01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04");
 
     public static ReadOnlyMemory<byte> WriteCoilResponse(ReadOnlyMemory<byte> request)
     {

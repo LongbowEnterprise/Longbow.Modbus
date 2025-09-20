@@ -2,8 +2,6 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
-using System.Buffers;
-
 namespace Longbow.Modbus;
 
 /// <summary>
@@ -14,19 +12,11 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
     // 事务标识符计数器
     private uint _transactionId = 0;
 
-    /// <summary>
-    /// 构建 Modbus TCP 读取消息方法
-    /// </summary>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="startAddress"></param>
-    /// <param name="numberOfPoints"></param>
-    /// <returns></returns>
-    public ReadOnlyMemory<byte> BuildReadRequest(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
+    public int BuildReadRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints)
     {
         var transactionId = GetTransactionId();
 
-        var request = new byte[12];
+        var request = buffer.Span;
 
         // MBAP头（7字节）
         request[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
@@ -44,22 +34,14 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         request[10] = (byte)(numberOfPoints >> 8);  // 10 寄存器数量高字节
         request[11] = (byte)(numberOfPoints & 0xFF);// 11 寄存器数量低字节
 
-        return request;
+        return 12;
     }
 
-    /// <summary>
-    /// 构建 Modbus TCP 写入消息方法
-    /// </summary>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="data"></param>
-    /// <returns></returns>
-    public ReadOnlyMemory<byte> BuildWriteRequest(byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
+    public int BuildWriteRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
     {
         var transactionId = GetTransactionId();
 
-        var len = 8 + data.Length;
-        var request = new byte[len];
+        var request = buffer.Span;
 
         // MBAP头（7字节）
         request[0] = (byte)(transactionId >> 8);    // 00 事务标识符高字节（可随机）
@@ -74,9 +56,9 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         request[7] = functionCode;                  // 07 功能码
 
         // 写入数据部分
-        data.CopyTo(request.AsMemory(8..));
+        data.CopyTo(buffer[8..]);
 
-        return request;
+        return 8 + data.Length;
     }
 
     private uint GetTransactionId()
@@ -90,14 +72,6 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         return Interlocked.Increment(ref _transactionId);
     }
 
-    /// <summary>
-    /// 验证 Modbus TCP 读取响应消息方法
-    /// </summary>
-    /// <param name="response"></param>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="exception"></param>
-    /// <returns></returns>
     public bool TryValidateReadResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, [NotNullWhen(false)] out Exception? exception)
     {
         if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
@@ -117,15 +91,6 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
         return true;
     }
 
-    /// <summary>
-    /// 验证 Modbus TCP 写入响应消息方法
-    /// </summary>
-    /// <param name="response"></param>
-    /// <param name="slaveAddress"></param>
-    /// <param name="functionCode"></param>
-    /// <param name="data"></param>
-    /// <param name="exception"></param>
-    /// <returns></returns>
     public bool TryValidateWriteResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data, [NotNullWhen(false)] out Exception? exception)
     {
         if (!TryValidateHeader(response, slaveAddress, functionCode, out exception))
@@ -202,104 +167,5 @@ sealed class DefaultTcpMessageBuilder : IModbusTcpMessageBuilder
             0x04 => "从站设备故障",
             _ => $"未知错误码: 0x{errorCode:X2}"
         };
-    }
-
-    public bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
-    {
-        var values = new bool[numberOfPoints];
-        for (var i = 0; i < numberOfPoints; i++)
-        {
-            var byteIndex = 9 + i / 8;
-            var bitIndex = i % 8;
-            values[i] = (response.Span[byteIndex] & (1 << bitIndex)) != 0;
-        }
-
-        return values;
-    }
-
-    public ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
-    {
-        var values = new ushort[numberOfPoints];
-        if (response.Length >= 9 + numberOfPoints * 2)
-        {
-            for (var i = 0; i < numberOfPoints; i++)
-            {
-                int offset = 9 + (i * 2);
-                values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
-            }
-        }
-
-        return values;
-    }
-
-    public ReadOnlyMemory<byte> WriteBoolValues(ushort address, bool[] values)
-    {
-        int byteCount = (values.Length + 7) / 8;
-        var len = values.Length > 1 ? 5 + byteCount : 4;
-        var buffer = MemoryPool<byte>.Shared.Rent(len);
-        var span = buffer.Memory.Span;
-        span[0] = (byte)(address >> 8);
-        span[1] = (byte)address;
-
-        if (values.Length > 1)
-        {
-            // 多值时，写入数量
-            span[2] = (byte)(values.Length >> 8);
-            span[3] = (byte)(values.Length);
-
-            // 字节数
-            span[4] = (byte)(byteCount);
-
-            for (var i = 0; i < values.Length; i++)
-            {
-                if (values[i])
-                {
-                    int byteIndex = 5 + i / 8;
-                    int bitIndex = i % 8;
-                    span[byteIndex] |= (byte)(1 << bitIndex);
-                }
-            }
-        }
-        else
-        {
-            // 组装数据
-            span[2] = values[0] ? (byte)0xFF : (byte)0x00;
-            span[3] = 0x00;
-        }
-
-        return buffer.Memory[0..len];
-    }
-
-    public ReadOnlyMemory<byte> WriteUShortValues(ushort address, ushort[] values)
-    {
-        int byteCount = values.Length * 2;
-        var len = values.Length > 1 ? 5 + byteCount : 4;
-        var buffer = MemoryPool<byte>.Shared.Rent(len);
-        var span = buffer.Memory.Span;
-        span[0] = (byte)(address >> 8);
-        span[1] = (byte)address;
-
-        if (values.Length > 1)
-        {
-            // 多值时，写入数量
-            span[2] = (byte)(values.Length >> 8);
-            span[3] = (byte)(values.Length);
-
-            // 字节数
-            span[4] = (byte)(byteCount);
-
-            for (var i = 0; i < values.Length; i++)
-            {
-                span[i * 2 + 5] = (byte)(values[i] >> 8);
-                span[i * 2 + 6] = (byte)(values[i] & 0xFF);
-            }
-        }
-        else
-        {
-            span[2] = (byte)(values[0] >> 8);
-            span[3] = (byte)(values[0] & 0xFF);
-        }
-
-        return buffer.Memory[0..len];
     }
 }

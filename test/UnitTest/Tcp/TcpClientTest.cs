@@ -94,24 +94,6 @@ public class TcpClientTest
     }
 
     [Fact]
-    public async Task ReadHoldingRegisterAsync_Failed()
-    {
-        var sc = new ServiceCollection();
-        sc.AddModbusFactory();
-
-        var provider = sc.BuildServiceProvider();
-        var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test", op =>
-        {
-            op.ConnectTimeout = 1000;
-        });
-
-        // 读取寄存器，模拟响应不正确逻辑
-        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
-        var response = await client.ReadHoldingRegistersAsync(0x01, 0, 20);
-    }
-
-    [Fact]
     public async Task ReadInputRegistersAsync_Ok()
     {
         var sc = new ServiceCollection();
@@ -126,6 +108,24 @@ public class TcpClientTest
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
+    }
+
+    [Fact]
+    public async Task ReadInputRegistersAsync_Failed()
+    {
+        var sc = new ServiceCollection();
+        sc.AddModbusFactory();
+
+        var provider = sc.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IModbusFactory>();
+        await using var client = factory.GetOrCreateTcpMaster("test", op =>
+        {
+            op.ConnectTimeout = 1000;
+        });
+
+        // 读取寄存器，模拟响应不正确逻辑
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
+        await Assert.ThrowsAnyAsync<IndexOutOfRangeException>(async () => await client.ReadInputRegistersAsync(0x01, 0, 20));
     }
 
     [Fact]

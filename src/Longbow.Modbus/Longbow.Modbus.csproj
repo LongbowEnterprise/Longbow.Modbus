@@ -25,14 +25,10 @@
 
   <ItemGroup>
     <PackageReference Include="Longbow.SerialPorts" Version="9.0.2" />
-    <PackageReference Include="Longbow.Sockets" Version="9.0.3" />
     <PackageReference Include="Longbow.TcpSocket" Version="9.0.11" />
   </ItemGroup>
 
   <ItemGroup>
-    <Using Include="Longbow.Sockets.DataAdapters" />
-    <Using Include="Longbow.Sockets.DataHandlers" />
-    <Using Include="Longbow.Sockets.DataConverters" />
     <Using Include="Longbow.TcpSocket" />
   </ItemGroup>
 
