@@ -14,10 +14,20 @@ class DefaultUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBuilder 
     public async ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default)
     {
         var ret = false;
+
+        await CloseAsync();
         _client = new UdpClient(options.LocalEndPoint);
 
         try
         {
+            var connectToken = token;
+            // 增加连接超时处理
+            if (options.ConnectTimeout > 0)
+            {
+                using var connectTimeoutCancellationTokenSource = new CancellationTokenSource(options.ConnectTimeout);
+                var linkToken = CancellationTokenSource.CreateLinkedTokenSource(token, connectTimeoutCancellationTokenSource.Token);
+                connectToken = linkToken.Token;
+            }
             await Task.Run(() =>
             {
                 try
@@ -31,7 +41,7 @@ class DefaultUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBuilder 
 
                     Exception = ex;
                 }
-            }, token);
+            }, connectToken);
             ret = true;
         }
         catch (Exception ex)
