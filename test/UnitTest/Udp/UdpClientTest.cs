@@ -20,7 +20,6 @@ public class UdpClientTest
         var factory = provider.GetRequiredService<IModbusFactory>();
         await using var client = factory.GetOrCreateUdpMaster(op =>
         {
-            op.ConnectTimeout = 1000;
             op.LocalEndPoint = new(IPAddress.Any, 0);
         });
 
@@ -47,7 +46,7 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test", op => op.ConnectTimeout = 1000);
+        await using var client = factory.GetOrCreateUdpMaster("test", op => op.ReadTimeout = 1000);
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 504);

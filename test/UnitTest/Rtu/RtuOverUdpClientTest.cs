@@ -36,7 +36,7 @@ public class RtuOverUdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuOverUdpMaster(op => op.ConnectTimeout = 1000);
+        var client = factory.GetOrCreateRtuOverUdpMaster(op => op.ReadTimeout = 1000);
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", 503);
