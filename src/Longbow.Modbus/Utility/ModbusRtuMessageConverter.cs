@@ -18,11 +18,14 @@ public static class ModbusRtuMessageConverter
     public static bool[] ReadBoolValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
     {
         var values = new bool[numberOfPoints];
-        for (var i = 0; i < numberOfPoints; i++)
+        if (!response.IsEmpty)
         {
-            var byteIndex = 3 + i / 8;
-            var bitIndex = i % 8;
-            values[i] = (response.Span[byteIndex] & (1 << bitIndex)) != 0;
+            for (var i = 0; i < numberOfPoints; i++)
+            {
+                var byteIndex = 3 + i / 8;
+                var bitIndex = i % 8;
+                values[i] = (response.Span[byteIndex] & (1 << bitIndex)) != 0;
+            }
         }
 
         return values;
@@ -37,10 +40,13 @@ public static class ModbusRtuMessageConverter
     public static ushort[] ReadUShortValues(ReadOnlyMemory<byte> response, ushort numberOfPoints)
     {
         var values = new ushort[numberOfPoints];
-        for (var i = 0; i < numberOfPoints; i++)
+        if (!response.IsEmpty)
         {
-            int offset = 3 + (i * 2);
-            values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
+            for (var i = 0; i < numberOfPoints; i++)
+            {
+                int offset = 3 + (i * 2);
+                values[i] = (ushort)((response.Span[offset] << 8) | response.Span[offset + 1]);
+            }
         }
 
         return values;

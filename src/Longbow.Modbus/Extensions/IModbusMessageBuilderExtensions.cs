@@ -7,18 +7,18 @@ namespace Longbow.Modbus;
 /// <summary>
 /// Modbus 消息转换器将 <see cref="ReadOnlyMemory{T}"/> 转换成指定的数据类型
 /// </summary>
-static class ModbusMessageConverter
+static class IModbusMessageBuilderExtensions
 {
-    public static bool[] ReadBoolValues(this IModbusClient client, ReadOnlyMemory<byte> response, ushort numberOfPoints)
+    public static bool[] ReadBoolValues(this IModbusMessageBuilder builder, ReadOnlyMemory<byte> response, ushort numberOfPoints)
     {
-        return client is IModbusTcpClient
+        return builder is IModbusTcpMessageBuilder
             ? ModbusTcpMessageConverter.ReadBoolValues(response, numberOfPoints)
             : ModbusRtuMessageConverter.ReadBoolValues(response, numberOfPoints);
     }
 
-    public static ushort[] ReadUShortValues(this IModbusClient client, ReadOnlyMemory<byte> response, ushort numberOfPoints)
+    public static ushort[] ReadUShortValues(this IModbusMessageBuilder builder, ReadOnlyMemory<byte> response, ushort numberOfPoints)
     {
-        return client is IModbusTcpClient
+        return builder is IModbusTcpMessageBuilder
             ? ModbusTcpMessageConverter.ReadUShortValues(response, numberOfPoints)
             : ModbusRtuMessageConverter.ReadUShortValues(response, numberOfPoints);
     }
