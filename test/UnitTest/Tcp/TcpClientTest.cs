@@ -5,7 +5,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 
-namespace UnitTestModbus;
+namespace UnitTest;
 
 [Collection("MockTcpModbus")]
 public class TcpClientTest
@@ -18,7 +18,7 @@ public class TcpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster();
 
         // 未连接 Master 直接读取
         var ex = await Assert.ThrowsAnyAsync<InvalidOperationException>(async () =>
@@ -36,14 +36,16 @@ public class TcpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test", op =>
+        await using var client = factory.GetOrCreateTcpMaster(op =>
         {
             op.ConnectTimeout = 1000;
             op.LocalEndPoint = new(IPAddress.Any, 0);
+            op.ReceiveBufferSize = 1024;
+            op.NoDelay = false;
         });
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.ReadCoilsAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -65,7 +67,7 @@ public class TcpClientTest
         await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.ReadInputsAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -79,13 +81,34 @@ public class TcpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("test", op =>
+        {
+            op.ConnectTimeout = 1000;
+        });
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.ReadHoldingRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
+    }
+
+    [Fact]
+    public async Task ReadHoldingRegisterAsync_Failed()
+    {
+        var sc = new ServiceCollection();
+        sc.AddModbusFactory();
+
+        var provider = sc.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IModbusFactory>();
+        await using var client = factory.GetOrCreateTcpMaster("test", op =>
+        {
+            op.ConnectTimeout = 1000;
+        });
+
+        // 读取寄存器，模拟响应不正确逻辑
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
+        var response = await client.ReadHoldingRegistersAsync(0x01, 0, 20);
     }
 
     [Fact]
@@ -96,10 +119,10 @@ public class TcpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateTcpMaster("test");
+        await using var client = factory.GetOrCreateTcpMaster("");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
         Assert.Equal(10, response.Length);
@@ -116,12 +139,30 @@ public class TcpClientTest
         await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.WriteCoilAsync(0x01, 0, true);
         Assert.True(response);
 
         response = await client.WriteCoilAsync(0x01, 0, false);
         Assert.True(response);
+
+        factory.RemoveTcpMaster("test");
+    }
+
+    [Fact]
+    public async Task WriteCoilAsync_Failed()
+    {
+        var sc = new ServiceCollection();
+        sc.AddModbusFactory();
+
+        var provider = sc.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IModbusFactory>();
+        await using var client = factory.GetOrCreateTcpMaster("test");
+
+        // 连接 Master
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
+        var response = await client.WriteCoilAsync(0x01, 1, true);
+        Assert.False(response);
     }
 
     [Fact]
@@ -135,13 +176,13 @@ public class TcpClientTest
         await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.WriteMultipleCoilsAsync(0x01, 0, [true, true, true, true, true, true, true, true, false, true]);
         Assert.True(response);
     }
 
     [Fact]
-    public async Task WriteRegisterAsync()
+    public async Task WriteRegisterAsync_Ok()
     {
         var sc = new ServiceCollection();
         sc.AddModbusFactory();
@@ -151,9 +192,25 @@ public class TcpClientTest
         await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.WriteRegisterAsync(0x01, 0, 12);
         Assert.True(response);
+    }
+
+    [Fact]
+    public async Task WriteRegisterAsync_Failed()
+    {
+        var sc = new ServiceCollection();
+        sc.AddModbusFactory();
+
+        var provider = sc.BuildServiceProvider();
+        var factory = provider.GetRequiredService<IModbusFactory>();
+        await using var client = factory.GetOrCreateTcpMaster("test");
+
+        // 模拟响应不正确逻辑
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
+        var response = await client.WriteRegisterAsync(0x01, 1, 12);
+        Assert.False(response);
     }
 
     [Fact]
@@ -167,7 +224,7 @@ public class TcpClientTest
         await using var client = factory.GetOrCreateTcpMaster("test");
 
         // 连接 Master
-        await client.ConnectAsync("127.0.0.1", 502);
+        await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.WriteMultipleRegistersAsync(0x01, 0, [12, 0, 23, 0, 46, 0, 01, 02, 04, 05]);
         Assert.True(response);
     }
@@ -187,7 +244,7 @@ public class TcpClientTest
         for (var index = 0; index < clientCount; index++)
         {
             var client = factory.GetOrCreateTcpMaster();
-            await client.ConnectAsync("127.0.0.1", 502);
+            await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
 
             clients.Add(client);
         }

@@ -7,61 +7,26 @@ using System.Net.Sockets;
 
 namespace Longbow.Modbus;
 
-class DefaultUdpClient(ModbusUdpClientOptions options, IModbusTcpMessageBuilder builder) : ModbusClientBase(builder), IModbusTcpClient
+class DefaultUdpClient(ModbusUdpClientOptions options, IModbusMessageBuilder builder) : ModbusClientBase(builder), IModbusTcpClient
 {
     private UdpClient _client = default!;
 
     public async ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default)
     {
-        var ret = false;
+        await CloseAsync();
         _client = new UdpClient(options.LocalEndPoint);
-
-        try
-        {
-            await Task.Run(() =>
-            {
-                try
-                {
-                    _client.Connect(endPoint);
-                }
-                catch (Exception ex)
-                {
-                    _client.Dispose();
-                    _client = default!;
-
-                    Exception = ex;
-                }
-            }, token);
-            ret = true;
-        }
-        catch (Exception ex)
-        {
-            Exception = ex;
-        }
-
-        return ret;
+        _client.Connect(endPoint);
+        return true;
     }
 
     protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)
     {
-        _client.ThrowIfNotConnected();
+        var sendToken = new CancellationTokenSource(options.WriteTimeout);
+        await _client.SendAsync(request, sendToken.Token);
 
-        var ret = ReadOnlyMemory<byte>.Empty;
-        try
-        {
-            var sendToken = new CancellationTokenSource(options.WriteTimeout);
-            await _client.SendAsync(request, sendToken.Token);
-
-            var receiveToken = new CancellationTokenSource(options.ReadTimeout);
-            var result = await _client.ReceiveAsync(receiveToken.Token);
-            ret = result.Buffer;
-        }
-        catch (Exception ex)
-        {
-            Exception = ex;
-        }
-
-        return ret;
+        var receiveToken = new CancellationTokenSource(options.ReadTimeout);
+        var result = await _client.ReceiveAsync(receiveToken.Token);
+        return result.Buffer;
     }
 
     /// <summary>

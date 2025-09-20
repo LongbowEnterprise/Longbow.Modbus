@@ -2,7 +2,7 @@
 // Licensed under the Apache License, Version 2.0. See License.txt in the project root for license information.
 // Website: https://github.com/LongbowExtensions/
 
-namespace UnitTestModbus;
+namespace UnitTest;
 
 static class MockTcpResponse
 {
@@ -14,6 +14,9 @@ static class MockTcpResponse
 
     public static ReadOnlyMemory<byte> ReadHoldingRegistersResponse(ReadOnlyMemory<byte> request) =>
         GenerateResponse(request, "00 00 00 17 01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04 00 05");
+
+    public static ReadOnlyMemory<byte> ReadHoldingRegistersErrorResponse(ReadOnlyMemory<byte> request) =>
+        GenerateResponse(request, "00 00 00 17 01 03 14 00 0C 00 00 00 17 00 00 00 2E 00 00 00 01 00 02 00 04");
 
     public static ReadOnlyMemory<byte> ReadInputRegistersResponse(ReadOnlyMemory<byte> request) =>
         GenerateResponse(request, "00 00 00 17 01 04 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00");

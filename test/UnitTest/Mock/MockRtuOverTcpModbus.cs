@@ -5,7 +5,7 @@
 using System.Net;
 using System.Net.Sockets;
 
-namespace UnitTestModbus;
+namespace UnitTest;
 
 internal static class MockRtuOverTcpModbus
 {
@@ -13,7 +13,7 @@ internal static class MockRtuOverTcpModbus
 
     public static TcpListener Start()
     {
-        _listener = new TcpListener(IPAddress.Loopback, 501);
+        _listener = new TcpListener(IPAddress.Loopback, RtuOverTcpModbusFixture.Port);
         _listener.Start();
         Task.Run(() => AcceptClientsAsync(_listener));
         return _listener;
@@ -98,6 +98,8 @@ internal static class MockRtuOverTcpModbus
 
 class RtuOverTcpModbusFixture : IDisposable
 {
+    public static readonly int Port = 8501;
+
     public RtuOverTcpModbusFixture()
     {
         MockRtuOverTcpModbus.Start();
@@ -111,7 +113,7 @@ class RtuOverTcpModbusFixture : IDisposable
 }
 
 [CollectionDefinition("MockRtuOverTcpModbus")]
-public class RtuModbusCollection : ICollectionFixture<RtuOverTcpModbusFixture>
+public class RtuOverTcpModbusCollection : ICollectionFixture<RtuOverTcpModbusFixture>
 {
 
 }

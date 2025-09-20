@@ -6,16 +6,16 @@ using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
-namespace UnitTestModbus;
+namespace UnitTest;
 
-internal static class MockUdpModbus
+internal static class MockRtuOverUdpModbus
 {
     private static Socket? _socket;
 
     public static Socket Start()
     {
         _socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-        _socket.Bind(new IPEndPoint(IPAddress.Any, 504));
+        _socket.Bind(new IPEndPoint(IPAddress.Any, RtuOverUdpModbusFixture.Port));
         Task.Run(() => AcceptClientsAsync(_socket));
         return _socket;
     }
@@ -35,49 +35,49 @@ internal static class MockUdpModbus
             var buffer = MemoryPool<byte>.Shared.Rent(1024);
             var response = await server.ReceiveFromAsync(buffer.Memory, SocketFlags.None, remoteEP);
 
-            if (response.ReceivedBytes >= 12)
+            if (response.ReceivedBytes >= 8)
             {
-                var request = buffer.Memory[0..12];
+                var request = buffer.Memory[0..8];
                 var data = request.Span;
-                if (data[7] == 0x01)
+                if (data[1] == 0x01)
                 {
                     // ReadCoilAsync
-                    await server.SendToAsync(MockTcpResponse.ReadCoilResponse(request), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.ReadCoilResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
-                else if (data[7] == 0x02)
+                else if (data[1] == 0x02)
                 {
                     // ReadInputsAsync
-                    await server.SendToAsync(MockTcpResponse.ReadInputsResponse(request), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.ReadInputsResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
-                else if (data[7] == 0x03)
+                else if (data[1] == 0x03)
                 {
                     // ReadHoldingRegistersAsync
-                    await server.SendToAsync(MockTcpResponse.ReadHoldingRegistersResponse(request), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.ReadHoldingRegistersResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
-                else if (data[7] == 0x04)
+                else if (data[1] == 0x04)
                 {
                     // ReadInputRegistersAsync
-                    await server.SendToAsync(MockTcpResponse.ReadInputRegistersResponse(request), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.ReadInputRegistersResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
-                else if (data[7] == 0x05)
+                else if (data[1] == 0x05)
                 {
                     // WriteCoilAsync
-                    await server.SendToAsync(MockTcpResponse.WriteCoilResponse(request), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.WriteCoilResponse(request), response.RemoteEndPoint, CancellationToken.None);
                 }
-                else if (data[7] == 0x06)
+                else if (data[1] == 0x06)
                 {
                     // WriteMultipleCoilsAsync
-                    await server.SendToAsync(MockTcpResponse.WriteMultipleCoilsResponse(request), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.WriteMultipleCoilsResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
-                else if (data[7] == 0x0F)
+                else if (data[1] == 0x0F)
                 {
                     // WriteRegisterAsync
-                    await server.SendToAsync(MockTcpResponse.WriteRegisterResponse(request), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.WriteRegisterResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
-                else if (data[7] == 0x10)
+                else if (data[1] == 0x10)
                 {
                     // WriteMultipleRegistersAsync
-                    await server.SendToAsync(MockTcpResponse.WriteMultipleRegistersResponse(request), response.RemoteEndPoint, CancellationToken.None);
+                    await server.SendToAsync(MockRtuResponse.WriteMultipleRegistersResponse(), response.RemoteEndPoint, CancellationToken.None);
                 }
             }
         }
@@ -96,22 +96,24 @@ internal static class MockUdpModbus
     }
 }
 
-class UdpModbusFixture : IDisposable
+class RtuOverUdpModbusFixture : IDisposable
 {
-    public UdpModbusFixture()
+    public static readonly int Port = 8503;
+
+    public RtuOverUdpModbusFixture()
     {
-        MockUdpModbus.Start();
+        MockRtuOverUdpModbus.Start();
     }
 
     public void Dispose()
     {
-        MockUdpModbus.Stop();
+        MockRtuOverUdpModbus.Stop();
         GC.SuppressFinalize(this);
     }
 }
 
-[CollectionDefinition("MockUdpModbus")]
-public class UdpModbusCollection : ICollectionFixture<UdpModbusFixture>
+[CollectionDefinition("MockRtuOverUdpModbus")]
+public class RtuOverUdpModbusCollection : ICollectionFixture<RtuOverUdpModbusFixture>
 {
 
 }

@@ -6,7 +6,7 @@ using System.Buffers;
 using System.Net;
 using System.Net.Sockets;
 
-namespace UnitTestModbus;
+namespace UnitTest;
 
 internal static class MockTcpModbus
 {
@@ -14,7 +14,7 @@ internal static class MockTcpModbus
 
     public static TcpListener Start()
     {
-        _listener = new TcpListener(IPAddress.Loopback, 502);
+        _listener = new TcpListener(IPAddress.Loopback, TcpModbusFixture.Port);
         _listener.Start();
         Task.Run(() => AcceptClientsAsync(_listener));
         return _listener;
@@ -67,7 +67,15 @@ internal static class MockTcpModbus
                 else if (functionCode == 0x03)
                 {
                     // ReadHoldingRegistersAsync
-                    await stream.WriteAsync(MockTcpResponse.ReadHoldingRegistersResponse(request), CancellationToken.None);
+                    if (request.Span[11] == 10)
+                    {
+                        await stream.WriteAsync(MockTcpResponse.ReadHoldingRegistersResponse(request), CancellationToken.None);
+                    }
+                    else
+                    {
+                        // 响应 ReadHoldingRegisterAsync_Exception 单元测试
+                        await stream.WriteAsync(MockTcpResponse.ReadHoldingRegistersErrorResponse(request), CancellationToken.None);
+                    }
                 }
                 else if (functionCode == 0x04)
                 {
@@ -111,8 +119,10 @@ internal static class MockTcpModbus
     }
 }
 
-class TcpModbusFixture : IDisposable
+public class TcpModbusFixture : IDisposable
 {
+    public static readonly int Port = 8502;
+
     public TcpModbusFixture()
     {
         MockTcpModbus.Start();

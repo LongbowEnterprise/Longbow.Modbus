@@ -38,7 +38,7 @@
     <Project Path="src/Longbow.Modbus/Longbow.Modbus.csproj" />
   </Folder>
   <Folder Name="/test/">
-    <Project Path="test/UnitTestModbus/UnitTestModbus.csproj" />
+    <Project Path="test/UnitTest/UnitTest.csproj" />
   </Folder>
   <Folder Name="/tools/">
     <Project Path="tools/Benchmarks/UnitTest.Benchmarks.csproj" />

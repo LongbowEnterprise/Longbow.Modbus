@@ -28,7 +28,7 @@ public class ModbusTcpClientOptions : ModbusClientOptions
     public int ReceiveBufferSize { get; set; } = 1024;
 
     /// <summary>
-    /// Gets or sets a value indicating whether the Nagle algorithm is disabled for the socket connection. Default value is true.
+    /// Gets or sets a value indicating whether the Nagle algorithm is disabled for the socket connection. Default value is false.
     /// </summary>
-    public bool NoDelay { get; set; } = true;
+    public bool NoDelay { get; set; }
 }

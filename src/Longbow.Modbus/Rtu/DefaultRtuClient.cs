@@ -26,8 +26,7 @@ class DefaultRtuClient(ISerialPortClient client, IModbusRtuMessageBuilder builde
     protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)
     {
         await client.SendAsync(request, token);
-        var response = await client.ReceiveAsync(token);
-        return response;
+        return await client.ReceiveAsync(token);
     }
 
     /// <summary>
