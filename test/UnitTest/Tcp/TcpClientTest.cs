@@ -125,7 +125,7 @@ public class TcpClientTest
 
         // 读取寄存器，模拟响应不正确逻辑
         await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
-        var response = await client.ReadInputRegistersAsync(0x01, 0, 20);
+        await Assert.ThrowsAnyAsync<IndexOutOfRangeException>(async () => await client.ReadInputRegistersAsync(0x01, 0, 20));
     }
 
     [Fact]
