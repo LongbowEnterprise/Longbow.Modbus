@@ -19,6 +19,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 2000);
 
         var response = await ReadAsync(slaveAddress, 0x01, startAddress, numberOfPoints, token);
+
         return builder.ReadBoolValues(response, numberOfPoints);
     }
 
@@ -27,6 +28,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 2000);
 
         var response = await ReadAsync(slaveAddress, 0x02, startAddress, numberOfPoints, token);
+
         return builder.ReadBoolValues(response, numberOfPoints);
     }
 
@@ -35,6 +37,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 125);
 
         var response = await ReadAsync(slaveAddress, 0x03, startAddress, numberOfPoints, token);
+
         return builder.ReadUShortValues(response, numberOfPoints);
     }
 
@@ -43,6 +46,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 125);
 
         var response = await ReadAsync(slaveAddress, 0x04, startAddress, numberOfPoints, token);
+
         return builder.ReadUShortValues(response, numberOfPoints);
     }
 
