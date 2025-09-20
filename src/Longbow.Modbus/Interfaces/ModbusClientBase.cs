@@ -108,7 +108,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
 
             // 构建数据值集合
             valueBuffer = ArrayPool<byte>.Shared.Rent(2000);
-            var len = builder.WriteBoolValues(buffer, address, values);
+            var len = builder.WriteBoolValues(valueBuffer, address, values);
             var data = valueBuffer.AsMemory()[0..len];
 
             // 构建请求报文
