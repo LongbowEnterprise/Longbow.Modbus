@@ -24,4 +24,44 @@ public static class IModbusClientExtensions
         var endPoint = TcpSocketUtility.ConvertToIpEndPoint(ipString, port);
         return client.ConnectAsync(endPoint, token);
     }
+
+    /// <summary>
+    /// 从指定站点异步读取线圈方法 功能码 0x01
+    /// <para>Asynchronously reads from 1 to 2000 contiguous coils status.</para>
+    /// </summary>
+    public static async ValueTask<bool[]> ReadCoilsAsync(this IModbusClient client, byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    {
+        var response = await client.ReadCoilsAsync(slaveAddress, startAddress, numberOfPoints, token);
+        return ModbusTcpMessageConverter.ReadBoolValues(response, numberOfPoints);
+    }
+
+    /// <summary>
+    /// 从指定站点异步读取离散输入方法 功能码 0x02
+    /// <para>Asynchronously reads from 1 to 2000 contiguous discrete input status.</para>
+    /// </summary>
+    public static async ValueTask<bool[]> ReadInputsAsync(this IModbusClient client, byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    {
+        var response = await client.ReadInputsAsync(slaveAddress, startAddress, numberOfPoints, token);
+        return ModbusTcpMessageConverter.ReadBoolValues(response, numberOfPoints);
+    }
+
+    /// <summary>
+    /// 从指定站点异步读取保持寄存器方法 功能码 0x03
+    /// <para>Asynchronously reads contiguous block of holding registers.</para>
+    /// </summary>
+    public static async ValueTask<ushort[]> ReadHoldingRegistersAsync(this IModbusClient client, byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    {
+        var response = await client.ReadHoldingRegistersAsync(slaveAddress, startAddress, numberOfPoints, token);
+        return ModbusTcpMessageConverter.ReadUShortValues(response, numberOfPoints);
+    }
+
+    /// <summary>
+    /// 从指定站点异步读取输入寄存器方法 功能码 0x04
+    /// <para>Asynchronously reads contiguous block of input registers.</para>
+    /// </summary>
+    public static async ValueTask<ushort[]> ReadInputRegistersAsync(this IModbusClient client, byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    {
+        var response = await client.ReadInputRegistersAsync(slaveAddress, startAddress, numberOfPoints, token);
+        return ModbusTcpMessageConverter.ReadUShortValues(response, numberOfPoints);
+    }
 }
