@@ -23,7 +23,7 @@ public interface IModbusClient : IAsyncDisposable
     /// <param name="numberOfPoints">Number of coils to read.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous read operation.</returns>
-    ValueTask<bool[]> ReadCoilsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default);
+    ValueTask<IModbusResponse> ReadCoilsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default);
 
     /// <summary>
     /// 从指定站点异步读取离散输入方法 功能码 0x02
@@ -34,7 +34,7 @@ public interface IModbusClient : IAsyncDisposable
     /// <param name="numberOfPoints">Number of discrete inputs to read.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous read operation.</returns>
-    ValueTask<bool[]> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default);
+    ValueTask<IModbusResponse> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default);
 
     /// <summary>
     /// 从指定站点异步读取保持寄存器方法 功能码 0x03
@@ -45,7 +45,7 @@ public interface IModbusClient : IAsyncDisposable
     /// <param name="numberOfPoints">Number of holding registers to read.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous read operation.</returns>
-    ValueTask<ushort[]> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default);
+    ValueTask<IModbusResponse> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default);
 
     /// <summary>
     /// 从指定站点异步读取输入寄存器方法 功能码 0x04
@@ -56,7 +56,7 @@ public interface IModbusClient : IAsyncDisposable
     /// <param name="numberOfPoints">Number of holding registers to read.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous read operation.</returns>
-    ValueTask<ushort[]> ReadInputRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default);
+    ValueTask<IModbusResponse> ReadInputRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default);
 
     /// <summary>
     /// Asynchronously writes a single coil value.
