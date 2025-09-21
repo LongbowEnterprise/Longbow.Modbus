@@ -26,7 +26,7 @@ public class RtuOverTcpClientTest
 
         var response = await client.ReadCoilsAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadBoolValues(10).Length);
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public class RtuOverTcpClientTest
         await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         var response = await client.ReadInputsAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadBoolValues(10).Length);
     }
 
     [Fact]
@@ -65,7 +65,7 @@ public class RtuOverTcpClientTest
         await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         var response = await client.ReadHoldingRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadUShortValues(10).Length);
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class RtuOverTcpClientTest
         await client.ConnectAsync("127.0.0.1", RtuOverTcpModbusFixture.Port);
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadUShortValues(10).Length);
 
         var client2 = factory.GetOrCreateRtuOverTcpMaster("test");
         Assert.Equal(client, client2);

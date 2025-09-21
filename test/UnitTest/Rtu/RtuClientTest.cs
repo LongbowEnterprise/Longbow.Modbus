@@ -60,11 +60,11 @@ public class RtuClientTest
 
         var response = await client.ReadCoilsAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadBoolValues(10).Length);
 
         response = await client.ReadCoilsAsync(0x01, 0, 5);
         Assert.NotNull(response);
-        Assert.Equal(5, response.Length);
+        Assert.Equal(5, response.ReadBoolValues(5).Length);
 
         var client2 = factory.GetOrCreateRtuMaster("test");
         Assert.NotEqual(client, client2);
@@ -89,7 +89,7 @@ public class RtuClientTest
         await client.ConnectAsync();
         var response = await client.ReadInputsAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadBoolValues(10).Length);
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class RtuClientTest
         await client.ConnectAsync();
         var response = await client.ReadHoldingRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadUShortValues(10).Length);
     }
 
     [Fact]
@@ -123,7 +123,7 @@ public class RtuClientTest
         await client.ConnectAsync();
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadUShortValues(10).Length);
     }
 
     [Fact]
