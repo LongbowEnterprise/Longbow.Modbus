@@ -20,7 +20,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
 
         var response = await ReadAsync(slaveAddress, 0x01, startAddress, numberOfPoints, token);
 
-        return new DefaultModbusResponse(response);
+        return new DefaultModbusResponse(response, builder);
     }
 
     public async ValueTask<IModbusResponse> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
@@ -29,7 +29,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
 
         var response = await ReadAsync(slaveAddress, 0x02, startAddress, numberOfPoints, token);
 
-        return new DefaultModbusResponse(response);
+        return new DefaultModbusResponse(response, builder);
     }
 
     public async ValueTask<IModbusResponse> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
@@ -38,7 +38,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
 
         var response = await ReadAsync(slaveAddress, 0x03, startAddress, numberOfPoints, token);
 
-        return new DefaultModbusResponse(response);
+        return new DefaultModbusResponse(response, builder);
     }
 
     public async ValueTask<IModbusResponse> ReadInputRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
@@ -47,7 +47,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
 
         var response = await ReadAsync(slaveAddress, 0x04, startAddress, numberOfPoints, token);
 
-        return new DefaultModbusResponse(response);
+        return new DefaultModbusResponse(response, builder);
     }
 
     public ValueTask<bool> WriteCoilAsync(byte slaveAddress, ushort coilAddress, bool value, CancellationToken token = default) => WriteBoolValuesAsync(slaveAddress, 0x05, coilAddress, [value], token);

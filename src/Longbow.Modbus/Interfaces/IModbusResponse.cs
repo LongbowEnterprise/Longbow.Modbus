@@ -13,4 +13,9 @@ public interface IModbusResponse
     /// 获得 原始数据
     /// </summary>
     ReadOnlyMemory<byte> RawData { get; }
+
+    /// <summary>
+    /// 获得 <see cref="IModbusMessageBuilder"/> 实例
+    /// </summary>
+    IModbusMessageBuilder Builder { get; }
 }
