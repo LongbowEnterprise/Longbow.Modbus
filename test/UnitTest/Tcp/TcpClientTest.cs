@@ -48,7 +48,7 @@ public class TcpClientTest
         await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.ReadCoilsAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadBoolValues(10).Length);
 
         await using var client2 = factory.GetOrCreateTcpMaster();
         Assert.NotEqual(client, client2);
@@ -70,7 +70,7 @@ public class TcpClientTest
         await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.ReadInputsAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadBoolValues(10).Length);
     }
 
     [Fact]
@@ -90,7 +90,7 @@ public class TcpClientTest
         await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.ReadHoldingRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadUShortValues(10).Length);
     }
 
     [Fact]
@@ -107,7 +107,7 @@ public class TcpClientTest
         await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.ReadInputRegistersAsync(0x01, 0, 10);
         Assert.NotNull(response);
-        Assert.Equal(10, response.Length);
+        Assert.Equal(10, response.ReadUShortValues(10).Length);
     }
 
     [Fact]
@@ -125,7 +125,9 @@ public class TcpClientTest
 
         // 读取寄存器，模拟响应不正确逻辑
         await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
-        await Assert.ThrowsAnyAsync<IndexOutOfRangeException>(async () => await client.ReadInputRegistersAsync(0x01, 0, 20));
+        var response = await client.ReadInputRegistersAsync(0x01, 0, 20);
+        Assert.NotNull(response);
+        Assert.ThrowsAny<IndexOutOfRangeException>(() => response.ReadUShortValues(20));
     }
 
     [Fact]
@@ -258,7 +260,7 @@ public class TcpClientTest
                 var task = Task.Run(async () =>
                 {
                     var v = await c.ReadHoldingRegistersAsync(1, 0, 10);
-                    results.Add(v);
+                    results.Add(v.ReadUShortValues(10));
                 });
                 tasks.Add(task);
             }

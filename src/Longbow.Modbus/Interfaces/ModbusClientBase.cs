@@ -14,40 +14,40 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
 
     protected abstract Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default);
 
-    public async ValueTask<bool[]> ReadCoilsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    public async ValueTask<IModbusResponse> ReadCoilsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 2000);
 
         var response = await ReadAsync(slaveAddress, 0x01, startAddress, numberOfPoints, token);
 
-        return builder.ReadBoolValues(response, numberOfPoints);
+        return new DefaultModbusResponse(response, builder);
     }
 
-    public async ValueTask<bool[]> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    public async ValueTask<IModbusResponse> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 2000);
 
         var response = await ReadAsync(slaveAddress, 0x02, startAddress, numberOfPoints, token);
 
-        return builder.ReadBoolValues(response, numberOfPoints);
+        return new DefaultModbusResponse(response, builder);
     }
 
-    public async ValueTask<ushort[]> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    public async ValueTask<IModbusResponse> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 125);
 
         var response = await ReadAsync(slaveAddress, 0x03, startAddress, numberOfPoints, token);
 
-        return builder.ReadUShortValues(response, numberOfPoints);
+        return new DefaultModbusResponse(response, builder);
     }
 
-    public async ValueTask<ushort[]> ReadInputRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    public async ValueTask<IModbusResponse> ReadInputRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 125);
 
         var response = await ReadAsync(slaveAddress, 0x04, startAddress, numberOfPoints, token);
 
-        return builder.ReadUShortValues(response, numberOfPoints);
+        return new DefaultModbusResponse(response, builder);
     }
 
     public ValueTask<bool> WriteCoilAsync(byte slaveAddress, ushort coilAddress, bool value, CancellationToken token = default) => WriteBoolValuesAsync(slaveAddress, 0x05, coilAddress, [value], token);
