@@ -22,12 +22,7 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
         request[4] = (byte)(numberOfPoints >> 8);     // 04 寄存器数量高字节
         request[5] = (byte)(numberOfPoints & 0xFF);   // 05 寄存器数量低字节
 
-        var crc = ModbusCrc16.Compute(buffer.Span[0..6]);
-
-        request[6] = (byte)(crc & 0xFF);
-        request[7] = (byte)(crc >> 8);
-
-        return 8;
+        return ModbusCrc16.Append(buffer, 6);
     }
 
     public int BuildWriteRequest(Memory<byte> buffer, byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data)
@@ -40,12 +35,7 @@ class DefaultRtuMessageBuilder : IModbusRtuMessageBuilder
         // 写入数据部分
         data.CopyTo(buffer[2..]);
 
-        var crc = ModbusCrc16.Compute(buffer.Span[0..(2 + data.Length)]);
-
-        request[2 + 2 + data.Length] = (byte)(crc & 0xFF);
-        request[3 + 2 + data.Length] = (byte)(crc >> 8);
-
-        return 4 + 2 + data.Length;
+        return ModbusCrc16.Append(buffer, 2 + data.Length);
     }
 
     public bool TryValidateReadResponse(ReadOnlyMemory<byte> response, byte slaveAddress, byte functionCode, [NotNullWhen(false)] out Exception? exception)
