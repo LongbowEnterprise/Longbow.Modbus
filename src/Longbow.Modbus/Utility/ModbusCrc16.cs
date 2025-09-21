@@ -91,6 +91,22 @@ public static class ModbusCrc16
     }
 
     /// <summary>
+    /// 计算 CRC 并将结果添加到消息末尾（Modbus格式）
+    /// </summary>
+    /// <param name="buffer">原始数据</param>
+    /// <param name="len">数据长度</param>
+    /// <returns>带 CRC 校验码的数据长度</returns>
+    public static int Append(Memory<byte> buffer, int len)
+    {
+        ushort crc = Compute(buffer.Span);
+
+        buffer.Span[len + 1] = (byte)(crc & 0xFF);
+        buffer.Span[len + 2] = (byte)(crc >> 8);
+
+        return len + 2;
+    }
+
+    /// <summary>
     /// 验证带 CRC 的数据是否有效
     /// </summary>
     /// <param name="dataWithCrc">包含 CRC 校验码的数据</param>
