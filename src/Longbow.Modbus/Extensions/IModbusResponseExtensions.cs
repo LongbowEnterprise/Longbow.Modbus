@@ -5,7 +5,7 @@
 namespace Longbow.Modbus;
 
 /// <summary>
-/// <see cref="IModbusResponse"/> 扩展方法"
+/// <see cref="IModbusResponse"/> 扩展方法
 /// </summary>
 public static class IModbusResponseExtensions
 {

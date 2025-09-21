@@ -127,7 +127,7 @@ public class TcpClientTest
         await client.ConnectAsync("127.0.0.1", TcpModbusFixture.Port);
         var response = await client.ReadInputRegistersAsync(0x01, 0, 20);
         Assert.NotNull(response);
-        Assert.ThrowsAny<IndexOutOfRangeException>(() => response.ReadBoolValues(20));
+        Assert.ThrowsAny<IndexOutOfRangeException>(() => response.ReadUShortValues(20));
     }
 
     [Fact]
