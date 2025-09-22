@@ -9,7 +9,7 @@ namespace Longbow.Modbus;
 /// <summary>
 /// ModbusRtuClientOptions 配置类
 /// </summary>
-public class ModbusRtuClientOptions : ModbusClientOptions
+public class ModbusRtuClientOptions
 {
     /// <summary>
     /// Gets or sets the name of the serial port to use for communication.

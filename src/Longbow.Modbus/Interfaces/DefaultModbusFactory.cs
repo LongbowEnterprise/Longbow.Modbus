@@ -122,8 +122,6 @@ class DefaultModbusFactory(IServiceProvider provider) : IModbusFactory
         var client = factory.GetOrCreate(configureOptions: op =>
         {
             op.ConnectTimeout = options.ConnectTimeout;
-            op.SendTimeout = options.WriteTimeout;
-            op.ReceiveTimeout = options.ReadTimeout;
             op.ReceiveBufferSize = options.ReceiveBufferSize;
             op.IsAutoReceive = false;
             op.IsAutoReconnect = false;

@@ -21,7 +21,5 @@ static class ModbusClientOptionsExtensions
         op.DiscardNull = options.DiscardNull;
         op.ReadBufferSize = options.ReadBufferSize;
         op.WriteBufferSize = options.WriteBufferSize;
-        op.ReadTimeout = options.ReadTimeout;
-        op.WriteTimeout = options.WriteTimeout;
     }
 }

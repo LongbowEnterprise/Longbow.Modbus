@@ -9,7 +9,7 @@ namespace Longbow.Modbus;
 /// <summary>
 /// ModbusUdpClientOptions 配置类
 /// </summary>
-public class ModbusUdpClientOptions : ModbusClientOptions
+public class ModbusUdpClientOptions
 {
     /// <summary>
     /// Gets or sets the local endpoint for the socket client. Default value is <see cref="IPAddress.Any"/>
