@@ -127,9 +127,7 @@ public class Benchmarks
                 {
                     for (int i = 0; i < NumberOfTask; i++)
                     {
-                        var response = await c.ReadHoldingRegistersAsync(1, 0, 100);
-                        var byteData = response.Data;
-
+                        await c.ReadHoldingRegistersAsync(1, 0, 100);
                     }
                 });
                 tasks.Add(task);

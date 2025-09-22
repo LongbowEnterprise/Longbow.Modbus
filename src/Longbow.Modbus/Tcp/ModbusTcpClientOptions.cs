@@ -9,7 +9,7 @@ namespace Longbow.Modbus;
 /// <summary>
 /// ModbusTcpClientOptions 配置类
 /// </summary>
-public class ModbusTcpClientOptions : ModbusClientOptions
+public class ModbusTcpClientOptions
 {
     /// <summary>
     /// Gets or sets the timeout duration, in milliseconds, for establishing a connection. Default value is 0
