@@ -5,7 +5,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 
-namespace UnitTest;
+namespace UnitTest.Udp;
 
 [Collection("MockUdpModbus")]
 public class UdpClientTest
@@ -46,7 +46,8 @@ public class UdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        await using var client = factory.GetOrCreateUdpMaster("test", op => op.ReadTimeout = 1000);
+        var ipAddress = TcpSocketUtility.ConvertToIPAddress("127.0.0.1");
+        await using var client = factory.GetOrCreateUdpMaster("test", op => op.LocalEndPoint = new IPEndPoint(ipAddress, 0));
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", UdpModbusFixture.Port);

@@ -5,7 +5,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 
-namespace UnitTest;
+namespace UnitTest.Tcp;
 
 public class TcpBuilderTest
 {

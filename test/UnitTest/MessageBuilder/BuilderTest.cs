@@ -3,9 +3,8 @@
 // Website: https://github.com/LongbowExtensions/
 
 using System.Reflection;
-using System.Runtime.CompilerServices;
 
-namespace UnitTest.MessageBuilder;
+namespace UnitTest.Builder;
 
 public class BuilderTest
 {
