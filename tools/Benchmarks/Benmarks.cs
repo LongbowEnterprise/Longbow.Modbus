@@ -22,6 +22,7 @@ public class Benchmarks
     private const int ClientCount = 10;
     private const int TaskNumberOfClient = 30;
     private const int NumberOfTask = 30;
+    private const int Quantity = 100;
 
     public Benchmarks()
     {
@@ -35,7 +36,7 @@ public class Benchmarks
             var client = new TouchSocket.Modbus.ModbusTcpMaster();
             await client.SetupAsync(new TouchSocket.Core.TouchSocketConfig().SetRemoteIPHost("127.0.0.1:502"));
             await client.ConnectAsync();
-            await client.ReadHoldingRegistersAsync(0x01, 0x00, 100);
+            await client.ReadHoldingRegistersAsync(0x01, 0x00, Quantity);
             _touchSocketModbusClients.Add(client);
         }
     }
@@ -47,7 +48,7 @@ public class Benchmarks
         for (var index = 0; index < ClientCount; index++)
         {
             var client = nModbusFactory.CreateMaster(new System.Net.Sockets.TcpClient("127.0.0.1", 502));
-            await client.ReadHoldingRegistersAsync(0x01, 0x00, 100);
+            await client.ReadHoldingRegistersAsync(0x01, 0x00, Quantity);
 
             _nModbusClients.Add(client);
         }
@@ -65,7 +66,7 @@ public class Benchmarks
         {
             var client = factory.GetOrCreateTcpMaster();
             await client.ConnectAsync("127.0.0.1", 502);
-            await client.ReadHoldingRegistersAsync(0x01, 0x00, 100);
+            await client.ReadHoldingRegistersAsync(0x01, 0x00, Quantity);
 
             _lgbModbusClients.Add(client);
         }
@@ -83,7 +84,7 @@ public class Benchmarks
                 {
                     for (int i = 0; i < NumberOfTask; i++)
                     {
-                        await c.ReadHoldingRegistersAsync(1, 0, 100);
+                        await c.ReadHoldingRegistersAsync(1, 0, Quantity);
                     }
                 }));
             }
@@ -105,7 +106,7 @@ public class Benchmarks
                 {
                     for (int i = 0; i < NumberOfTask; i++)
                     {
-                        await c.ReadHoldingRegistersAsync(1, 0, 100);
+                        await c.ReadHoldingRegistersAsync(1, 0, Quantity);
                     }
                 }));
             }
@@ -127,7 +128,7 @@ public class Benchmarks
                 {
                     for (int i = 0; i < NumberOfTask; i++)
                     {
-                        await c.ReadHoldingRegistersAsync(1, 0, 100);
+                        await c.ReadHoldingRegistersAsync(1, 0, Quantity);
                     }
                 });
                 tasks.Add(task);
