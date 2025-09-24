@@ -94,7 +94,7 @@ public class Benchmarks
         await Task.WhenAll(tasks);
     }
 
-    [Benchmark]
+    //[Benchmark]
     public async Task NModbus()
     {
         var tasks = _nModbusClients.SelectMany(c =>
