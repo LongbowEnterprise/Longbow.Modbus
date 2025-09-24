@@ -4,9 +4,11 @@
 
 namespace Longbow.Modbus;
 
-sealed class DefaultModbusResponse(ReadOnlyMemory<byte> response, IModbusMessageBuilder builder) : IModbusResponse
+sealed class DefaultModbusResponse(ReadOnlyMemory<byte> response, int length, IModbusMessageBuilder builder) : IModbusResponse
 {
-    public ReadOnlyMemory<byte> RawData { get; } = response;
+    public ReadOnlyMemory<byte> Buffer { get; } = response;
+
+    public int Length { get; } = length;
 
     public IModbusMessageBuilder Builder { get; } = builder;
 }
