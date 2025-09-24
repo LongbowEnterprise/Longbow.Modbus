@@ -5,7 +5,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
 
-namespace UnitTest;
+namespace UnitTest.Tcp;
 
 [Collection("MockTcpModbus")]
 public class TcpClientTest

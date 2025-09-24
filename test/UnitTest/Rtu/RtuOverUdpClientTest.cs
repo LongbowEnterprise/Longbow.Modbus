@@ -4,7 +4,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace UnitTest;
+namespace UnitTest.Rtu;
 
 [Collection("MockRtuOverUdpModbus")]
 public class RtuOverUdpClientTest
@@ -36,7 +36,8 @@ public class RtuOverUdpClientTest
 
         var provider = sc.BuildServiceProvider();
         var factory = provider.GetRequiredService<IModbusFactory>();
-        var client = factory.GetOrCreateRtuOverUdpMaster(op => op.ReadTimeout = 1000);
+        var ipAddress = TcpSocketUtility.ConvertToIPAddress("127.0.0.1");
+        var client = factory.GetOrCreateRtuOverUdpMaster(op => op.LocalEndPoint = new System.Net.IPEndPoint(ipAddress, 0));
 
         // 连接 Master
         await client.ConnectAsync("127.0.0.1", RtuOverUdpModbusFixture.Port);

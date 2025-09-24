@@ -4,7 +4,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace UnitTest;
+namespace UnitTest.Rtu;
 
 public class RtuBuilderTest
 {

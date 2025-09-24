@@ -4,7 +4,7 @@
 
 using Microsoft.Extensions.DependencyInjection;
 
-namespace UnitTest;
+namespace UnitTest.Rtu;
 
 public class RtuClientTest
 {
@@ -43,8 +43,6 @@ public class RtuClientTest
             op.DataBits = 8;
             op.Parity = System.IO.Ports.Parity.None;
             op.StopBits = System.IO.Ports.StopBits.One;
-            op.ReadTimeout = 3000;
-            op.WriteTimeout = 3000;
             op.RtsEnable = false;
             op.DtrEnable = false;
             op.Handshake = System.IO.Ports.Handshake.None;
