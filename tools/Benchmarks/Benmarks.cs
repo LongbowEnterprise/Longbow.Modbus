@@ -20,8 +20,8 @@ public class Benchmarks
     private readonly List<ModbusTcpMaster> _touchSocketModbusClients = [];
 
     private const int ClientCount = 10;
-    private const int TaskNumberOfClient = 30;
-    private const int NumberOfTask = 30;
+    private const int TaskNumberOfClient = 10;
+    private const int NumberOfTask = 10;
     private const int Quantity = 100;
 
     public Benchmarks()
