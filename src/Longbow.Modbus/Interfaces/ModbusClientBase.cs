@@ -10,65 +10,55 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
 {
     private readonly SemaphoreSlim _semaphore = new(1, 1);
 
-    public Exception? Exception { get; protected set; }
-
     protected abstract Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default);
 
-    public async ValueTask<IModbusResponse> ReadCoilsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    public ValueTask<IModbusResponse> ReadCoilsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 2000);
 
-        var response = await ReadAsync(slaveAddress, 0x01, startAddress, numberOfPoints, token);
-
-        return new DefaultModbusResponse(response, builder);
+        return ReadAsync(slaveAddress, 0x01, startAddress, numberOfPoints, token);
     }
 
-    public async ValueTask<IModbusResponse> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    public ValueTask<IModbusResponse> ReadInputsAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 2000);
 
-        var response = await ReadAsync(slaveAddress, 0x02, startAddress, numberOfPoints, token);
-
-        return new DefaultModbusResponse(response, builder);
+        return ReadAsync(slaveAddress, 0x02, startAddress, numberOfPoints, token);
     }
 
-    public async ValueTask<IModbusResponse> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    public ValueTask<IModbusResponse> ReadHoldingRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 125);
 
-        var response = await ReadAsync(slaveAddress, 0x03, startAddress, numberOfPoints, token);
-
-        return new DefaultModbusResponse(response, builder);
+        return ReadAsync(slaveAddress, 0x03, startAddress, numberOfPoints, token);
     }
 
-    public async ValueTask<IModbusResponse> ReadInputRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    public ValueTask<IModbusResponse> ReadInputRegistersAsync(byte slaveAddress, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
         MessageBuilder.ValidateNumberOfPoints(nameof(numberOfPoints), numberOfPoints, 125);
 
-        var response = await ReadAsync(slaveAddress, 0x04, startAddress, numberOfPoints, token);
-
-        return new DefaultModbusResponse(response, builder);
+        return ReadAsync(slaveAddress, 0x04, startAddress, numberOfPoints, token);
     }
 
-    public ValueTask<bool> WriteCoilAsync(byte slaveAddress, ushort coilAddress, bool value, CancellationToken token = default) => WriteBoolValuesAsync(slaveAddress, 0x05, coilAddress, [value], token);
+    public ValueTask<IModbusResponse> WriteCoilAsync(byte slaveAddress, ushort coilAddress, bool value, CancellationToken token = default) => WriteBoolValuesAsync(slaveAddress, 0x05, coilAddress, [value], token);
 
-    public ValueTask<bool> WriteRegisterAsync(byte slaveAddress, ushort registerAddress, ushort value, CancellationToken token = default) => WriteUShortValuesAsync(slaveAddress, 0x06, registerAddress, [value], token);
+    public ValueTask<IModbusResponse> WriteRegisterAsync(byte slaveAddress, ushort registerAddress, ushort value, CancellationToken token = default) => WriteUShortValuesAsync(slaveAddress, 0x06, registerAddress, [value], token);
 
-    public ValueTask<bool> WriteMultipleCoilsAsync(byte slaveAddress, ushort startAddress, bool[] values, CancellationToken token = default)
+    public ValueTask<IModbusResponse> WriteMultipleCoilsAsync(byte slaveAddress, ushort startAddress, bool[] values, CancellationToken token = default)
     {
         MessageBuilder.ValidateData(nameof(values), values, 1968);
 
         return WriteBoolValuesAsync(slaveAddress, 0x0F, startAddress, values, token);
     }
 
-    public ValueTask<bool> WriteMultipleRegistersAsync(byte slaveAddress, ushort registerAddress, ushort[] values, CancellationToken token = default)
+    public ValueTask<IModbusResponse> WriteMultipleRegistersAsync(byte slaveAddress, ushort registerAddress, ushort[] values, CancellationToken token = default)
     {
         MessageBuilder.ValidateData(nameof(values), values, 123);
 
         return WriteUShortValuesAsync(slaveAddress, 0x10, registerAddress, values, token);
     }
 
-    private async ValueTask<ReadOnlyMemory<byte>> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    private async ValueTask<IModbusResponse> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
         try
         {
@@ -82,7 +72,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
     }
 
-    private async ValueTask<ReadOnlyMemory<byte>> SendReadRequestAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    private async ValueTask<IModbusResponse> SendReadRequestAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
         var buffer = ArrayPool<byte>.Shared.Rent(12);
 
@@ -95,11 +85,9 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
             var received = await SendAsync(buffer.AsMemory()[0..len], token);
 
             // 验证响应报文
-            var valid = builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception);
+            builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception);
 
-            Exception = valid ? null : exception;
-
-            return valid ? received : default;
+            return new DefaultModbusResponse(received, builder, exception);
         }
         finally
         {
@@ -107,7 +95,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
     }
 
-    private async ValueTask<bool> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values, CancellationToken token = default)
+    private async ValueTask<IModbusResponse> WriteBoolValuesAsync(byte slaveAddress, byte functionCode, ushort address, bool[] values, CancellationToken token = default)
     {
         try
         {
@@ -121,7 +109,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
     }
 
-    private async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values, CancellationToken token = default)
+    private async ValueTask<IModbusResponse> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values, CancellationToken token = default)
     {
         try
         {
@@ -135,7 +123,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
     }
 
-    private async ValueTask<bool> SendWriteValuesRequestAsync<TValue>(byte slaveAddress, byte functionCode, ushort address, TValue[] values, Func<Memory<byte>, ushort, TValue[], int> writeCallback, CancellationToken token = default)
+    private async ValueTask<IModbusResponse> SendWriteValuesRequestAsync<TValue>(byte slaveAddress, byte functionCode, ushort address, TValue[] values, Func<Memory<byte>, ushort, TValue[], int> writeCallback, CancellationToken token = default)
     {
         // 构建数据值集合
         var buffer = ArrayPool<byte>.Shared.Rent(2000);
@@ -148,9 +136,8 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
 
             // 验证响应报文
             var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
-            Exception = valid ? null : exception;
 
-            return valid;
+            return new DefaultModbusResponse(received, builder, exception);
         }
         finally
         {
