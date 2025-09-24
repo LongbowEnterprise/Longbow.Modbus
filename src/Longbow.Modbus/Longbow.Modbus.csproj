@@ -25,7 +25,7 @@
 
   <ItemGroup>
     <PackageReference Include="Longbow.SerialPorts" Version="9.0.2" />
-    <PackageReference Include="Longbow.TcpSocket" Version="9.0.12" />
+    <PackageReference Include="Longbow.TcpSocket" Version="9.0.13" />
   </ItemGroup>
 
   <ItemGroup>
