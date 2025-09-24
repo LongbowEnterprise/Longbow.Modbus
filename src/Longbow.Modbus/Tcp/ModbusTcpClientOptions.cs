@@ -12,11 +12,6 @@ namespace Longbow.Modbus;
 public class ModbusTcpClientOptions
 {
     /// <summary>
-    /// Gets or sets the timeout duration, in milliseconds, for establishing a connection. Default value is 0
-    /// </summary>
-    public int ConnectTimeout { get; set; }
-
-    /// <summary>
     /// Gets or sets the local endpoint for the socket client. Default value is <see cref="IPAddress.Any"/>
     /// </summary>
     /// <remarks>This property specifies the local network endpoint that the socket client will bind to when establishing a connection.</remarks>
