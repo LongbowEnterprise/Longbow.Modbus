@@ -18,4 +18,14 @@ public interface IModbusResponse
     /// 获得 <see cref="IModbusMessageBuilder"/> 实例
     /// </summary>
     IModbusMessageBuilder Builder { get; }
+
+    /// <summary>
+    /// 获得 上一次操作异常信息。操作正常时为 null
+    /// </summary>
+    Exception? Exception { get; }
+
+    /// <summary>
+    /// 指示响应是否成功
+    /// </summary>
+    bool IsSuccess { get; }
 }
