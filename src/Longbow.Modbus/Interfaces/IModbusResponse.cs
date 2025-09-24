@@ -15,11 +15,6 @@ public interface IModbusResponse
     ReadOnlyMemory<byte> Buffer { get; }
 
     /// <summary>
-    /// 获得 数据长度
-    /// </summary>
-    int Length { get; }
-
-    /// <summary>
     /// 获得 <see cref="IModbusMessageBuilder"/> 实例
     /// </summary>
     IModbusMessageBuilder Builder { get; }
