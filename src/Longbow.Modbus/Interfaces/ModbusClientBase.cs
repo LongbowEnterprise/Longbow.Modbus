@@ -108,7 +108,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         {
             await _semaphore.WaitAsync(token).ConfigureAwait(false);
 
-            return await WriteValues(slaveAddress, functionCode, address, values, token);
+            return await SendWriteValuesRequestAsync(slaveAddress, functionCode, address, values, MessageBuilder.WriteBoolValues, token);
         }
         finally
         {
@@ -116,16 +116,30 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
     }
 
-    private async ValueTask<bool> WriteValues(byte slaveAddress, byte functionCode, ushort address, bool[] values, CancellationToken token = default)
+    private async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values, CancellationToken token = default)
+    {
+        try
+        {
+            await _semaphore.WaitAsync(token).ConfigureAwait(false);
+
+            return await SendWriteValuesRequestAsync(slaveAddress, functionCode, address, values, MessageBuilder.WriteUShortValues, token);
+        }
+        finally
+        {
+            Release();
+        }
+    }
+
+    private async ValueTask<bool> SendWriteValuesRequestAsync<TValue>(byte slaveAddress, byte functionCode, ushort address, TValue[] values, Func<Memory<byte>, ushort, TValue[], int> writeCallback, CancellationToken token = default)
     {
         // 构建数据值集合
         var buffer = ArrayPool<byte>.Shared.Rent(2000);
 
         try
         {
-            var len = MessageBuilder.WriteBoolValues(buffer, address, values);
+            var len = writeCallback(buffer, address, values);
             var data = buffer.AsMemory()[..len];
-            var received = await BuildWriteRequest(slaveAddress, functionCode, data, token);
+            var received = await SendWriteValuesRequestCoreAsync(slaveAddress, functionCode, data, token);
 
             // 验证响应报文
             var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
@@ -139,7 +153,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
     }
 
-    private async ValueTask<ReadOnlyMemory<byte>> BuildWriteRequest(byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data, CancellationToken token = default)
+    private async ValueTask<ReadOnlyMemory<byte>> SendWriteValuesRequestCoreAsync(byte slaveAddress, byte functionCode, ReadOnlyMemory<byte> data, CancellationToken token = default)
     {
         var buffer = ArrayPool<byte>.Shared.Rent(2000);
 
@@ -154,48 +168,6 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         finally
         {
             ArrayPool<byte>.Shared.Return(buffer);
-        }
-    }
-
-    private async ValueTask<bool> WriteUShortValuesAsync(byte slaveAddress, byte functionCode, ushort address, ushort[] values, CancellationToken token = default)
-    {
-        byte[]? valueBuffer = null;
-        byte[]? buffer = null;
-
-        try
-        {
-            await _semaphore.WaitAsync(token).ConfigureAwait(false);
-
-            // 构建数据值集合
-            valueBuffer = ArrayPool<byte>.Shared.Rent(2000);
-            var len = MessageBuilder.WriteUShortValues(valueBuffer, address, values);
-            var data = valueBuffer.AsMemory()[0..len];
-
-            // 构建请求报文
-            buffer = ArrayPool<byte>.Shared.Rent(2000);
-            var request = builder.BuildWriteRequest(buffer, slaveAddress, functionCode, data);
-
-            // 发送请求
-            var received = await SendAsync(buffer.AsMemory()[0..request], token);
-
-            // 验证响应报文
-            var valid = builder.TryValidateWriteResponse(received, slaveAddress, functionCode, data, out var exception);
-
-            Exception = valid ? null : exception;
-            return valid;
-        }
-        finally
-        {
-            if (valueBuffer != null)
-            {
-                ArrayPool<byte>.Shared.Return(valueBuffer);
-            }
-            if (buffer != null)
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-
-            Release();
         }
     }
 
