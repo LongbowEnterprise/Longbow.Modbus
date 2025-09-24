@@ -11,12 +11,12 @@ class DefaultUdpClient(ModbusUdpClientOptions options, IModbusMessageBuilder bui
 {
     private UdpClient _client = default!;
 
-    public async ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default)
+    public ValueTask<bool> ConnectAsync(IPEndPoint endPoint, CancellationToken token = default)
     {
-        await CloseAsync();
         _client = new UdpClient(options.LocalEndPoint);
         _client.Connect(endPoint);
-        return true;
+
+        return ValueTask.FromResult(true);
     }
 
     protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)

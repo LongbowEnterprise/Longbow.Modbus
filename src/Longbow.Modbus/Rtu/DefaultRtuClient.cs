@@ -8,24 +8,12 @@ namespace Longbow.Modbus;
 
 class DefaultRtuClient(ISerialPortClient client, IModbusRtuMessageBuilder builder) : ModbusClientBase(builder), IModbusRtuClient
 {
-    public async ValueTask<bool> ConnectAsync(CancellationToken token = default)
-    {
-        var ret = false;
-        try
-        {
-            ret = await client.OpenAsync(token);
-        }
-        catch (Exception ex)
-        {
-            Exception = ex;
-        }
-
-        return ret;
-    }
+    public ValueTask<bool> ConnectAsync(CancellationToken token = default) => client.OpenAsync(token);
 
     protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)
     {
         await client.SendAsync(request, token);
+
         return await client.ReceiveAsync(token);
     }
 
@@ -34,6 +22,9 @@ class DefaultRtuClient(ISerialPortClient client, IModbusRtuMessageBuilder builde
     /// </summary>
     public override async ValueTask CloseAsync()
     {
-        await client.CloseAsync();
+        if (client.IsOpen)
+        {
+            await client.CloseAsync();
+        }
     }
 }
