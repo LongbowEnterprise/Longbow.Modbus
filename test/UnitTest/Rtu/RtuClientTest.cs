@@ -3,13 +3,14 @@
 // Website: https://github.com/LongbowExtensions/
 
 using Microsoft.Extensions.DependencyInjection;
+using System.Net.Sockets;
 
 namespace UnitTest.Rtu;
 
 public class RtuClientTest
 {
     [Fact]
-    public async Task Connect_Failed()
+    public async Task Connect_Exception()
     {
         var sc = new ServiceCollection();
         sc.AddMockRtuClientService();
@@ -22,9 +23,7 @@ public class RtuClientTest
         });
 
         // 连接 Master
-        var connected = await client.ConnectAsync();
-        Assert.False(connected);
-        Assert.NotNull(client.Exception);
+        await Assert.ThrowsAnyAsync<Exception>(async () => await client.ConnectAsync());
     }
 
     [Fact]
