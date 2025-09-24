@@ -10,9 +10,9 @@ namespace Longbow.Modbus;
 public interface IModbusResponse
 {
     /// <summary>
-    /// 获得 原始数据
+    /// 获得 数据缓冲区
     /// </summary>
-    ReadOnlyMemory<byte> RawData { get; }
+    ReadOnlyMemory<byte> Buffer { get; }
 
     /// <summary>
     /// 获得 <see cref="IModbusMessageBuilder"/> 实例

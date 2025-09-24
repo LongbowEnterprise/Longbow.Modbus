@@ -10,7 +10,7 @@ namespace Longbow.Modbus;
 public static class IModbusResponseExtensions
 {
     /// <summary>
-    /// 将 <see cref="IModbusResponse"/> 实例中 <see cref="IModbusResponse.RawData"/> 转换成布尔数组
+    /// 将 <see cref="IModbusResponse"/> 实例中 <see cref="IModbusResponse.Buffer"/> 转换成布尔数组
     /// </summary>
     /// <param name="response"></param>
     /// <param name="numberOfPoints"></param>
@@ -18,12 +18,12 @@ public static class IModbusResponseExtensions
     public static bool[] ReadBoolValues(this IModbusResponse response, ushort numberOfPoints)
     {
         return response.Builder is IModbusTcpMessageBuilder
-            ? ModbusTcpMessageConverter.ReadBoolValues(response.RawData, numberOfPoints)
-            : ModbusRtuMessageConverter.ReadBoolValues(response.RawData, numberOfPoints);
+            ? ModbusTcpMessageConverter.ReadBoolValues(response.Buffer, numberOfPoints)
+            : ModbusRtuMessageConverter.ReadBoolValues(response.Buffer, numberOfPoints);
     }
 
     /// <summary>
-    /// 将 <see cref="IModbusResponse"/> 实例中 <see cref="IModbusResponse.RawData"/> 转换成无符号短整型数组
+    /// 将 <see cref="IModbusResponse"/> 实例中 <see cref="IModbusResponse.Buffer"/> 转换成无符号短整型数组
     /// </summary>
     /// <param name="response"></param>
     /// <param name="numberOfPoints"></param>
@@ -31,7 +31,7 @@ public static class IModbusResponseExtensions
     public static ushort[] ReadUShortValues(this IModbusResponse response, ushort numberOfPoints)
     {
         return response.Builder is IModbusTcpMessageBuilder
-            ? ModbusTcpMessageConverter.ReadUShortValues(response.RawData, numberOfPoints)
-            : ModbusRtuMessageConverter.ReadUShortValues(response.RawData, numberOfPoints);
+            ? ModbusTcpMessageConverter.ReadUShortValues(response.Buffer, numberOfPoints)
+            : ModbusRtuMessageConverter.ReadUShortValues(response.Buffer, numberOfPoints);
     }
 }
