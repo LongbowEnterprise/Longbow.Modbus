@@ -38,7 +38,6 @@ public class TcpClientTest
         var factory = provider.GetRequiredService<IModbusFactory>();
         await using var client = factory.GetOrCreateTcpMaster(op =>
         {
-            op.ConnectTimeout = 1000;
             op.LocalEndPoint = new(IPAddress.Any, 0);
             op.ReceiveBufferSize = 1024;
             op.NoDelay = false;
@@ -83,7 +82,7 @@ public class TcpClientTest
         var factory = provider.GetRequiredService<IModbusFactory>();
         await using var client = factory.GetOrCreateTcpMaster("test", op =>
         {
-            op.ConnectTimeout = 1000;
+            op.NoDelay = false;
         });
 
         // 连接 Master
@@ -120,7 +119,7 @@ public class TcpClientTest
         var factory = provider.GetRequiredService<IModbusFactory>();
         await using var client = factory.GetOrCreateTcpMaster("test", op =>
         {
-            op.ConnectTimeout = 1000;
+            op.NoDelay = false;
         });
 
         // 读取寄存器，模拟响应不正确逻辑

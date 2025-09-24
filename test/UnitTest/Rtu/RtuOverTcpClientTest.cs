@@ -40,7 +40,7 @@ public class RtuOverTcpClientTest
         var factory = provider.GetRequiredService<IModbusFactory>();
         var client = factory.GetOrCreateRtuOverTcpMaster(op =>
         {
-            op.ConnectTimeout = 1000;
+            op.NoDelay = false;
         });
 
         // 连接 Master
