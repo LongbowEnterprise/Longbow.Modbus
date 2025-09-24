@@ -97,9 +97,4 @@ public interface IModbusClient : IAsyncDisposable
     /// <param name="token">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous write operation.</returns>
     ValueTask<bool> WriteMultipleRegistersAsync(byte slaveAddress, ushort startAddress, ushort[] data, CancellationToken token = default);
-
-    /// <summary>
-    /// 断开连接方法
-    /// </summary>
-    ValueTask CloseAsync();
 }
