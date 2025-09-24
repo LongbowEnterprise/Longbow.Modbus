@@ -127,6 +127,7 @@ public class TcpClientTest
         var response = await client.ReadInputRegistersAsync(0x01, 0, 20);
         Assert.NotNull(response);
         Assert.ThrowsAny<IndexOutOfRangeException>(() => response.ReadUShortValues(20));
+        Assert.NotNull(client.Exception);
     }
 
     [Fact]
