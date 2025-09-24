@@ -70,14 +70,24 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
 
     private async ValueTask<ReadOnlyMemory<byte>> ReadAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
     {
-        byte[]? buffer = null;
-
         try
         {
             await _semaphore.WaitAsync(token).ConfigureAwait(false);
 
-            buffer = ArrayPool<byte>.Shared.Rent(12);
+            return await SendReadRequestAsync(slaveAddress, functionCode, startAddress, numberOfPoints, token);
+        }
+        finally
+        {
+            Release();
+        }
+    }
 
+    private async ValueTask<ReadOnlyMemory<byte>> SendReadRequestAsync(byte slaveAddress, byte functionCode, ushort startAddress, ushort numberOfPoints, CancellationToken token = default)
+    {
+        var buffer = ArrayPool<byte>.Shared.Rent(12);
+
+        try
+        {
             // 构建请求报文
             var len = builder.BuildReadRequest(buffer, slaveAddress, functionCode, startAddress, numberOfPoints);
 
@@ -93,12 +103,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
         }
         finally
         {
-            if (buffer != null)
-            {
-                ArrayPool<byte>.Shared.Return(buffer);
-            }
-
-            Release();
+            ArrayPool<byte>.Shared.Return(buffer);
         }
     }
 
