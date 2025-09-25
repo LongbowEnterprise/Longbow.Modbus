@@ -82,7 +82,7 @@ abstract class ModbusClientBase(IModbusMessageBuilder builder) : IModbusClient
             var len = builder.BuildReadRequest(buffer, slaveAddress, functionCode, startAddress, numberOfPoints);
 
             // 发送请求
-            var received = await SendAsync(buffer.AsMemory()[0..len], token);
+            var received = await SendAsync(buffer.AsMemory()[..len], token);
 
             // 验证响应报文
             builder.TryValidateReadResponse(received, slaveAddress, functionCode, out var exception);
