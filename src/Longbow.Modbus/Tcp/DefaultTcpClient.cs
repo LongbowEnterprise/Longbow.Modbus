@@ -17,9 +17,9 @@ class DefaultTcpClient(ITcpSocketClient client, IModbusMessageBuilder builder) :
             throw new InvalidOperationException("The TCP client is not connected. Please establish a connection before sending data.");
         }
 
-        await client.SendAsync(request, token);
+        var ret = await client.SendAsync(request, token);
 
-        return await client.ReceiveAsync(token);
+        return ret ? await client.ReceiveAsync(token) : ReadOnlyMemory<byte>.Empty;
     }
 
     /// <summary>
