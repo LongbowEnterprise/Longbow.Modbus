@@ -12,9 +12,14 @@ class DefaultTcpClient(ITcpSocketClient client, IModbusMessageBuilder builder) :
 
     protected override async Task<ReadOnlyMemory<byte>> SendAsync(ReadOnlyMemory<byte> request, CancellationToken token = default)
     {
-        await client.SendAsync(request, token);
+        if (client.IsConnected == false)
+        {
+            throw new InvalidOperationException("The TCP client is not connected. Please establish a connection before sending data.");
+        }
 
-        return await client.ReceiveAsync(token);
+        var ret = await client.SendAsync(request, token);
+
+        return ret ? await client.ReceiveAsync(token) : ReadOnlyMemory<byte>.Empty;
     }
 
     /// <summary>

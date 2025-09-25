@@ -10,11 +10,6 @@ namespace Longbow.Modbus;
 public interface IModbusClient : IAsyncDisposable
 {
     /// <summary>
-    /// 获得 上一次操作异常信息。操作正常时为 null
-    /// </summary>
-    Exception? Exception { get; }
-
-    /// <summary>
     /// 从指定站点异步读取线圈方法 功能码 0x01
     /// <para>Asynchronously reads from 1 to 2000 contiguous coils status.</para>
     /// </summary>
@@ -66,7 +61,7 @@ public interface IModbusClient : IAsyncDisposable
     /// <param name="value">Value to write.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous write operation.</returns>
-    ValueTask<bool> WriteCoilAsync(byte slaveAddress, ushort coilAddress, bool value, CancellationToken token = default);
+    ValueTask<IModbusResponse> WriteCoilAsync(byte slaveAddress, ushort coilAddress, bool value, CancellationToken token = default);
 
     /// <summary>
     /// Asynchronously writes a sequence of coils.
@@ -76,7 +71,7 @@ public interface IModbusClient : IAsyncDisposable
     /// <param name="data">Values to write.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous write operation.</returns>
-    ValueTask<bool> WriteMultipleCoilsAsync(byte slaveAddress, ushort startAddress, bool[] data, CancellationToken token = default);
+    ValueTask<IModbusResponse> WriteMultipleCoilsAsync(byte slaveAddress, ushort startAddress, bool[] data, CancellationToken token = default);
 
     /// <summary>
     /// Asynchronously writes a single holding register.
@@ -86,7 +81,7 @@ public interface IModbusClient : IAsyncDisposable
     /// <param name="value">Value to write.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous write operation.</returns>
-    ValueTask<bool> WriteRegisterAsync(byte slaveAddress, ushort registerAddress, ushort value, CancellationToken token = default);
+    ValueTask<IModbusResponse> WriteRegisterAsync(byte slaveAddress, ushort registerAddress, ushort value, CancellationToken token = default);
 
     /// <summary>
     /// Asynchronously writes a block of 1 to 123 contiguous registers.
@@ -96,10 +91,5 @@ public interface IModbusClient : IAsyncDisposable
     /// <param name="data">Values to write.</param>
     /// <param name="token">Cancellation token.</param>
     /// <returns>A task that represents the asynchronous write operation.</returns>
-    ValueTask<bool> WriteMultipleRegistersAsync(byte slaveAddress, ushort startAddress, ushort[] data, CancellationToken token = default);
-
-    /// <summary>
-    /// 断开连接方法
-    /// </summary>
-    ValueTask CloseAsync();
+    ValueTask<IModbusResponse> WriteMultipleRegistersAsync(byte slaveAddress, ushort startAddress, ushort[] data, CancellationToken token = default);
 }

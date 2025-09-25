@@ -116,7 +116,7 @@ public class Benchmarks
         await Task.WhenAll(tasks);
     }
 
-    [Benchmark]
+    //[Benchmark]
     public async Task TouchSocketModbus()
     {
         var tasks = _touchSocketModbusClients.SelectMany(c =>

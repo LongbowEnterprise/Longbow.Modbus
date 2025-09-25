@@ -3,7 +3,6 @@
 // Website: https://github.com/LongbowExtensions/
 
 using System.Net;
-using System.Runtime.Versioning;
 
 namespace Longbow.Modbus;
 
