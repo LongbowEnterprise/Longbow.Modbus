@@ -4,7 +4,7 @@
 
 namespace Longbow.Modbus;
 
-class DefaultModbusResponse(ReadOnlyMemory<byte> buffer, IModbusMessageBuilder builder, Exception? exception) : IModbusResponse
+sealed class DefaultModbusResponse(ReadOnlyMemory<byte> buffer, IModbusMessageBuilder builder, Exception? exception) : IModbusResponse
 {
     public ReadOnlyMemory<byte> Buffer => buffer;
 
